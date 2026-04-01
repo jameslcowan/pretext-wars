@@ -456,3 +456,232 @@ html, body {
   text-shadow: 0 0 10px rgba(91, 196, 196, 0.4);
 }
 
+/* ── Boss HUD ──────────────────────────────── */
+#boss-hud {
+  position: fixed;
+  bottom: max(3rem, calc(env(safe-area-inset-bottom, 0px) + 1rem));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 65;
+  pointer-events: none;
+  text-align: center;
+  transition: opacity 0.5s ease;
+}
+#boss-hud.hidden { opacity: 0; pointer-events: none; }
+#boss-label {
+  font-size: 0.4rem;
+  letter-spacing: 0.3em;
+  color: var(--ember);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  text-shadow: 0 0 10px rgba(217, 119, 87, 0.5);
+}
+#boss-hp-container {
+  width: 240px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(217, 119, 87, 0.3);
+  border-radius: 4px;
+  overflow: hidden;
+}
+#boss-hp-bar {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #d97757, #ff6644);
+  border-radius: 4px;
+  transition: width 0.2s ease;
+}
+
+/* ── Buff Indicator ───────────────────────── */
+#buff-indicator {
+  position: fixed;
+  top: 3rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  z-index: 62;
+  pointer-events: none;
+}
+.buff-badge {
+  padding: 4px 10px;
+  border-radius: 10px;
+  font-size: clamp(0.5rem, 1.2vw, 0.7rem);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  border: 1px solid;
+  animation: buffPulse 1.5s ease infinite;
+}
+@keyframes buffPulse {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; }
+}
+
+/* ── Floating Score Popup ─────────────────── */
+.score-popup {
+  position: fixed;
+  pointer-events: none;
+  z-index: 95;
+  font-family: var(--font);
+  font-size: clamp(0.7rem, 1.6vw, 1rem);
+  letter-spacing: 0.1em;
+  font-weight: bold;
+  animation: scoreFloat 0.9s ease-out forwards;
+  text-shadow: 0 0 8px currentColor;
+}
+@keyframes scoreFloat {
+  0% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-40px) scale(0.7); }
+}
+
+/* ── Health Pack ──────────────────────────── */
+.health-pack {
+  position: fixed;
+  pointer-events: none;
+  z-index: 25;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  will-change: transform;
+}
+.health-pack-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #66ff88, #22aa44 60%, #116622 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 0 4px rgba(0,0,0,0.5);
+  box-shadow: 0 0 12px rgba(34, 170, 68, 0.6), 0 0 30px rgba(34, 170, 68, 0.25);
+  animation: healthGlow 1.5s ease infinite;
+}
+@keyframes healthGlow {
+  0%, 100% { box-shadow: 0 0 12px rgba(34, 170, 68, 0.6), 0 0 30px rgba(34, 170, 68, 0.25); }
+  50% { box-shadow: 0 0 18px rgba(34, 170, 68, 0.8), 0 0 45px rgba(34, 170, 68, 0.4); }
+}
+
+/* ── OSS Buff Pickup ──────────────────────── */
+.buff-pickup {
+  position: fixed;
+  pointer-events: none;
+  z-index: 25;
+  will-change: transform;
+}
+.buff-pickup-inner {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 0 3px rgba(0,0,0,0.6);
+  animation: buffFloat 2s ease infinite;
+}
+@keyframes buffFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+/* ── Bug Aliens ───────────────────────────── */
+.alien {
+  position: fixed;
+  pointer-events: none;
+  z-index: 25;
+  will-change: transform;
+}
+
+/* ── PM Boss ──────────────────────────────── */
+.boss {
+  position: fixed;
+  pointer-events: none;
+  z-index: 24;
+  will-change: transform;
+}
+.boss-window {
+  width: 100px;
+  height: 80px;
+  background: #1a1a2e;
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 0 30px rgba(168, 85, 247, 0.3), 0 0 60px rgba(168, 85, 247, 0.15);
+}
+.boss-titlebar {
+  height: 14px;
+  background: #2a1a3e;
+  display: flex;
+  align-items: center;
+  padding: 0 4px;
+  gap: 3px;
+}
+.boss-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+.boss-dot.red { background: #ff5f56; }
+.boss-dot.yellow { background: #ffbd2e; }
+.boss-dot.green { background: #27c93f; }
+.boss-title {
+  margin-left: 4px;
+  font-size: 5px;
+  color: rgba(255,255,255,0.4);
+  font-family: monospace;
+  letter-spacing: 0;
+}
+.boss-face {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+}
+.boss-eyes {
+  display: flex;
+  gap: 12px;
+  font-size: 14px;
+}
+.boss-eye {
+  color: var(--ember);
+  text-shadow: 0 0 8px var(--ember);
+}
+.boss-mouth {
+  font-size: 10px;
+  color: var(--ember);
+  margin-top: 2px;
+}
+.boss-speech {
+  font-size: 5.5px;
+  color: rgba(255,255,255,0.6);
+  text-align: center;
+  padding: 2px 4px;
+  font-family: monospace;
+  letter-spacing: 0;
+  min-height: 14px;
+}
+.boss.entering {
+  animation: bossEnter 1s ease-out;
+}
+@keyframes bossEnter {
+  0% { opacity: 0; filter: brightness(3); }
+  100% { opacity: 1; filter: brightness(1); }
+}
+
+/* ── Ship damage flash ────────────────────── */
+#ship.hit {
+  filter: drop-shadow(0 0 16px rgba(255, 50, 50, 1))
+          drop-shadow(0 0 40px rgba(255, 50, 50, 0.8));
+}
+
