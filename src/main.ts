@@ -191,3 +191,41 @@ const BUFF_TYPES = [
   { name: 'Git', icon: 'devicon:git', color: '#f05032', effect: 'rewind' as const, duration: 0 },
 ];
 
+// ── Starfield ─────────────────────────────────
+const starsCtx = starsCanvas.getContext('2d')!;
+interface Star { x: number; y: number; r: number; speed: number; brightness: number; }
+const stars: Star[] = [];
+
+function initStars() {
+  starsCanvas.width = window.innerWidth;
+  starsCanvas.height = window.innerHeight;
+  stars.length = 0;
+  const count = isMobile ? 150 : 350;
+  for (let i = 0; i < count; i++) {
+    stars.push({
+      x: Math.random() * starsCanvas.width,
+      y: Math.random() * starsCanvas.height,
+      r: Math.random() * 1.5 + 0.2,
+      speed: Math.random() * 0.25 + 0.03,
+      brightness: Math.random(),
+    });
+  }
+}
+
+function drawStars(t: number) {
+  starsCtx.clearRect(0, 0, starsCanvas.width, starsCanvas.height);
+  for (const s of stars) {
+    const flicker = 0.5 + 0.5 * Math.sin(t * 2.5 + s.brightness * 25);
+    const alpha = (0.25 + 0.75 * s.brightness) * flicker;
+    starsCtx.beginPath();
+    starsCtx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    starsCtx.fillStyle = `rgba(220, 210, 190, ${alpha})`;
+    starsCtx.fill();
+    s.y += s.speed;
+    if (s.y > starsCanvas.height + 5) {
+      s.y = -5;
+      s.x = Math.random() * starsCanvas.width;
+    }
+  }
+}
+
