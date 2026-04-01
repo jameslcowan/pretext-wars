@@ -1,0 +1,108 @@
+/* ── Reset & Base ──────────────────────────── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #04040a;
+  --ink: #d4cbb8;
+  --gold: #c4a265;
+  --gold-dim: rgba(196, 162, 101, 0.3);
+  --gold-glow: rgba(196, 162, 101, 0.12);
+  --ember: #d97757;
+  --cyan: #5bc4c4;
+  --purple: #a855f7;
+  --font: 'Cantata One', Georgia, 'Times New Roman', serif;
+}
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  touch-action: none;
+  user-select: none;
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cline x1='16' y1='0' x2='16' y2='12' stroke='%235bc4c4' stroke-width='1.5' stroke-opacity='0.45'/%3E%3Cline x1='16' y1='20' x2='16' y2='32' stroke='%235bc4c4' stroke-width='1.5' stroke-opacity='0.45'/%3E%3Cline x1='0' y1='16' x2='12' y2='16' stroke='%235bc4c4' stroke-width='1.5' stroke-opacity='0.45'/%3E%3Cline x1='20' y1='16' x2='32' y2='16' stroke='%235bc4c4' stroke-width='1.5' stroke-opacity='0.45'/%3E%3Ccircle cx='16' cy='16' r='3' stroke='%235bc4c4' stroke-width='1' fill='none' stroke-opacity='0.35'/%3E%3C/svg%3E") 16 16, crosshair;
+  overscroll-behavior: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+}
+
+/* ── Starfield Canvas ──────────────────────── */
+#stars {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ── Loading ───────────────────────────────── */
+#loading {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  z-index: 200;
+  transition: opacity 1.2s ease, visibility 0s 1.2s;
+}
+#loading.hidden { opacity: 0; visibility: hidden; }
+.loading-text {
+  color: var(--gold);
+  font-size: clamp(0.7rem, 2vw, 0.95rem);
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 1; }
+}
+
+/* ── Stage ─────────────────────────────────── */
+#stage {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  z-index: 1;
+}
+#text-container {
+  position: absolute;
+  inset: 0;
+}
+
+/* ── Text Lines ────────────────────────────── */
+.line {
+  position: absolute;
+  white-space: pre;
+  font-family: var(--font);
+  color: var(--ink);
+  line-height: 1;
+  will-change: transform, opacity;
+  pointer-events: none;
+}
+
+/* ── Per-character spans ───────────────────── */
+.ch {
+  display: inline-block;
+  will-change: transform, opacity;
+}
+.ch.destroyed { pointer-events: none; }
+
+/* ── Illuminated Drop Cap ──────────────────── */
+.drop-cap {
+  position: absolute;
+  font-family: var(--font);
+  color: var(--gold);
+  line-height: 0.82;
+  pointer-events: none;
+  z-index: 10;
+  text-shadow:
+    0 0 30px rgba(196, 162, 101, 0.5),
+    0 0 60px rgba(196, 162, 101, 0.25),
+    0 0 100px rgba(196, 162, 101, 0.12);
+}
+
