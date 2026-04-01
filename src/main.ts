@@ -232,10 +232,14 @@ function drawStars(t: number) {
 }
 
 // ── Planets ───────────────────────────────────
-const planetRadius = isMobile ? 40 : 75;
+const planetRadius = isMobile ? 30 : 75;
 const sw = window.innerWidth;
 const sh = window.innerHeight;
-const planets: Orb[] = [
+const planets: Orb[] = isMobile ? [
+  { x: sw * 0.7, y: sh * 0.2, r: planetRadius * 1.0, vx: 0.15, vy: 0.08, className: 'planet--jupiter' },
+  { x: sw * 0.25, y: sh * 0.35, r: planetRadius * 0.85, vx: 0.22, vy: 0.12, className: 'planet--saturn' },
+  { x: sw * 0.55, y: sh * 0.52, r: planetRadius * 0.7, vx: -0.12, vy: 0.16, className: 'planet--earth' },
+] : [
   { x: sw * 0.75, y: sh * 0.18, r: planetRadius * 1.1, vx: 0.15, vy: 0.08, className: 'planet--jupiter' },
   { x: sw * 0.25, y: sh * 0.32, r: planetRadius * 0.95, vx: 0.22, vy: 0.12, className: 'planet--saturn' },
   { x: sw * 0.6, y: sh * 0.48, r: planetRadius * 0.75, vx: -0.12, vy: 0.16, className: 'planet--earth' },
