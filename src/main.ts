@@ -986,8 +986,9 @@ function reflow() {
   const activePlanets = planets.filter(p => p.el && !p.el.classList.contains('exploding') && p.el.style.display !== 'none');
 
   const hudClearance = isMobile ? 50 : 65;
+  const poemWithAttribution = currentPoem.text + '\n\n- ' + currentPoem.attribution;
   lines = layoutAroundOrbs(
-    currentPoem.text,
+    poemWithAttribution,
     FONT_SIZE,
     LINE_HEIGHT,
     window.innerWidth,
@@ -1384,7 +1385,7 @@ function restartGame() {
   charEls = [];
   if (dropCapEl) { dropCapEl.remove(); dropCapEl = null; }
   currentPoem = getRandomPoem();
-  attributionEl.textContent = currentPoem.attribution;
+  attributionEl.textContent = '';
   reflow();
   updateHUD();
 }
@@ -2029,7 +2030,7 @@ async function init() {
 
   initStars();
   createPlanetEls();
-  attributionEl.textContent = currentPoem.attribution;
+  attributionEl.textContent = '';
   reflow();
 
   lineEls.forEach((el, i) => {
