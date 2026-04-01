@@ -1023,7 +1023,7 @@ function reflow() {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     let lineX = line.x;
-    if (i === 0) lineX = PADDING + dcWidth;
+    if (i === 0 && !dropCapDestroyed) lineX = PADDING + dcWidth;
     lineEls[i].style.left = `${lineX}px`;
     lineEls[i].style.top = `${line.y}px`;
   }
