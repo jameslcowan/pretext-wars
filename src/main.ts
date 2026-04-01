@@ -56,7 +56,7 @@ let lineEls: HTMLElement[] = [];
 let charEls: HTMLElement[][] = [];
 let dropCapEl: HTMLElement | null = null;
 let pointerX = window.innerWidth / 2;
-let pointerY = window.innerHeight / 2;
+let pointerY = window.innerHeight * 0.85;
 let shipX = pointerX;
 let shipY = pointerY;
 let shipSpeed = INITIAL_SHIP_SPEED;
@@ -234,11 +234,11 @@ const planetRadius = isMobile ? 40 : 75;
 const sw = window.innerWidth;
 const sh = window.innerHeight;
 const planets: Orb[] = [
-  { x: sw * 0.75, y: sh * 0.2, r: planetRadius * 1.1, vx: 0.15, vy: 0.08, className: 'planet--jupiter' },
-  { x: sw * 0.25, y: sh * 0.35, r: planetRadius * 0.95, vx: 0.22, vy: 0.12, className: 'planet--saturn' },
-  { x: sw * 0.6, y: sh * 0.55, r: planetRadius * 0.75, vx: -0.12, vy: 0.16, className: 'planet--earth' },
-  { x: sw * 0.4, y: sh * 0.75, r: planetRadius * 0.6, vx: -0.18, vy: 0.2, className: 'planet--mars' },
-  { x: sw * 0.82, y: sh * 0.7, r: planetRadius * 0.45, vx: 0.14, vy: -0.18, className: 'planet--neptune' },
+  { x: sw * 0.75, y: sh * 0.18, r: planetRadius * 1.1, vx: 0.15, vy: 0.08, className: 'planet--jupiter' },
+  { x: sw * 0.25, y: sh * 0.32, r: planetRadius * 0.95, vx: 0.22, vy: 0.12, className: 'planet--saturn' },
+  { x: sw * 0.6, y: sh * 0.48, r: planetRadius * 0.75, vx: -0.12, vy: 0.16, className: 'planet--earth' },
+  { x: sw * 0.35, y: sh * 0.62, r: planetRadius * 0.6, vx: -0.18, vy: 0.2, className: 'planet--mars' },
+  { x: sw * 0.82, y: sh * 0.55, r: planetRadius * 0.45, vx: 0.14, vy: -0.18, className: 'planet--neptune' },
 ];
 
 function getPlanetMaxHp(r: number): number {
@@ -1303,6 +1303,12 @@ function restartGame() {
   }
 
   gameOverScreen.classList.remove('active');
+
+  // Reset ship to center-bottom
+  pointerX = window.innerWidth / 2;
+  pointerY = window.innerHeight * 0.85;
+  shipX = pointerX;
+  shipY = pointerY;
 
   lineEls.forEach(el => el.remove());
   lineEls = [];
