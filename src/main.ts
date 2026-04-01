@@ -510,10 +510,20 @@ function updateShip() {
 
   ship.style.transform = `translate(${shipX - 18}px, ${shipY - 18}px) rotate(${shipAngle}deg)`;
 
-  // Mobile reticle
+  // Mobile reticle shows aim direction, not ship position
   if (isMobile) {
     const reticle = document.getElementById('mobile-reticle');
-    if (reticle) reticle.style.transform = `translate(${shipX - 12}px, ${shipY - 12}px)`;
+    if (reticle) {
+      const dx = pointerX - shipX;
+      const dy = pointerY - shipY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist > 30) {
+        reticle.style.opacity = '1';
+        reticle.style.transform = `translate(${pointerX - 12}px, ${pointerY - 12}px)`;
+      } else {
+        reticle.style.opacity = '0';
+      }
+    }
   }
 
   // Invulnerability blink
