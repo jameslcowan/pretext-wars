@@ -18,7 +18,7 @@ const INITIAL_FIRE_RATE = 150; // slow at start
 const INITIAL_PROJ_SPEED = 12;
 const INITIAL_PROJ_W = 2;
 const INITIAL_PROJ_H = 10;
-const INITIAL_SHIP_SPEED = isMobile ? 2.2 : 4; // px per frame max
+const INITIAL_SHIP_SPEED = isMobile ? 1.2 : 4; // px per frame max
 
 // ── DOM refs ──────────────────────────────────
 const stage = document.getElementById('stage')!;
