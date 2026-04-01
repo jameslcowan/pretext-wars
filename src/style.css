@@ -1219,15 +1219,18 @@ body.left-handed #mobile-move-zone {
   #hint { font-size: 0.4rem; bottom: max(0.6rem, env(safe-area-inset-bottom, 0px)); }
   #stage::before, #stage::after { width: 5%; }
   #hud {
-    padding: 0.4rem 0.6rem;
-    padding-top: max(0.4rem, env(safe-area-inset-top, 0px));
-    padding-left: max(0.6rem, env(safe-area-inset-left, 0px));
-    padding-right: max(0.6rem, env(safe-area-inset-right, 0px));
+    padding: 0.2rem 0.5rem;
+    padding-top: max(0.2rem, env(safe-area-inset-top, 0px));
+    padding-left: max(0.5rem, env(safe-area-inset-left, 0px));
+    padding-right: max(0.5rem, env(safe-area-inset-right, 0px));
+    gap: 0.2rem;
   }
-  #hp-container { width: min(160px, 50vw); height: 14px; }
-  #score-display { font-size: 0.6rem; }
-  #level-display { font-size: 0.4rem; }
-  #hud-left, #hud-right { flex: 0 0 50px; }
+  #hp-label { font-size: 0.3rem; }
+  #hp-container { width: min(120px, 40vw); height: 10px; }
+  #hp-text { font-size: 0.35rem; }
+  #score-display { font-size: 0.5rem; }
+  #level-display { font-size: 0.35rem; }
+  #hud-left, #hud-right { flex: 0 0 40px; }
   .boss-window { width: 70px; height: 60px; }
 
   /* Show mobile pause button, reticle, and controls */
@@ -1247,11 +1250,11 @@ body.left-handed #mobile-move-zone {
   .ob-icon { font-size: clamp(0.8rem, 2.5vw, 1.2rem); }
 
   /* Toast below HUD */
-  #toast-container { top: 2.8rem; }
+  #toast-container { top: 2rem; }
 
   /* Buff indicator compact */
-  #buff-indicator { top: 2.2rem; }
-  .buff-badge { font-size: 0.28rem; padding: 1px 5px; }
+  #buff-indicator { top: 1.6rem; }
+  .buff-badge { font-size: 0.25rem; padding: 1px 4px; }
   .buff-badge-effect { display: none; }
 
   /* Pause overlay compact */
