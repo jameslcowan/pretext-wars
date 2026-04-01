@@ -9,9 +9,9 @@ import gsap from 'gsap';
 
 // ── Config ────────────────────────────────────
 const isMobile = window.innerWidth < 600;
-const FONT_SIZE = isMobile ? 18 : 26;
-const LINE_HEIGHT = isMobile ? 30 : 44;
-const PADDING = isMobile ? 24 : 70;
+const FONT_SIZE = isMobile ? 15 : 26;
+const LINE_HEIGHT = isMobile ? 25 : 44;
+const PADDING = isMobile ? 32 : 70;
 const DROP_CAP_SCALE = 3.5;
 const DROP_CAP_LINES = 3;
 const INITIAL_FIRE_RATE = 150; // slow at start
