@@ -525,3 +525,26 @@ function updateShip() {
   }
 }
 
+// ── Toast Notifications ──────────────────────
+function showToast(text: string, color: string) {
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = text;
+  el.style.color = color;
+  el.style.borderColor = color + '60';
+  toastContainer.appendChild(el);
+  setTimeout(() => el.remove(), 2100);
+}
+
+// ── Floating Score Popup ──────────────────────
+function showScorePopup(x: number, y: number, pts: number, color: string) {
+  const el = document.createElement('div');
+  el.className = 'score-popup';
+  el.textContent = `+${pts}`;
+  el.style.left = `${x}px`;
+  el.style.top = `${y}px`;
+  el.style.color = color;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 950);
+}
+
