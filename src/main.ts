@@ -1648,7 +1648,9 @@ function tickHealthPacks() {
 function spawnBuffPickup() {
   if (gameOver) return;
 
-  const buffType = BUFF_TYPES[Math.floor(Math.random() * BUFF_TYPES.length)];
+  // Weight Python (multishot) 3x more likely
+  const weighted = [...BUFF_TYPES, ...BUFF_TYPES.filter(b => b.effect === 'multishot'), ...BUFF_TYPES.filter(b => b.effect === 'multishot')];
+  const buffType = weighted[Math.floor(Math.random() * weighted.length)];
   const margin = 80;
   const x = margin + Math.random() * (window.innerWidth - margin * 2);
   const y = margin + Math.random() * (window.innerHeight - margin * 2);
