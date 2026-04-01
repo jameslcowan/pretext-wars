@@ -1073,31 +1073,75 @@ function renderDropCap() {
 
 // ── Kinetic Effects ───────────────────────────
 function tickKinetic(t: number) {
+  const swimRadius = isMobile ? 90 : 140;
+  const swimForce = isMobile ? 14 : 22;
+
   for (let li = 0; li < lineEls.length; li++) {
     const el = lineEls[li];
     const line = lines[li];
     if (!line) continue;
+    const chars = charEls[li];
+    if (!chars) continue;
 
-    const cy = line.y + LINE_HEIGHT / 2;
-    const cx = line.x + line.width / 2;
-    const dx = cx - shipX;
-    const dy = cy - shipY;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    const radius = isMobile ? 100 : 160;
-
-    if (dist < radius && dist > 0) {
-      const force = (1 - dist / radius) * (isMobile ? 5 : 10);
-      el.style.transform = `translate(${(dx / dist) * force}px, ${(dy / dist) * force}px)`;
-    } else {
+    // Quick check: is ship anywhere near this line?
+    const lineCY = line.y + LINE_HEIGHT / 2;
+    const lineDistY = Math.abs(lineCY - shipY);
+    if (lineDistY > swimRadius + 20) {
+      // Far away -- just do idle wave on the line, reset chars
       const wave = Math.sin(t * 0.5 + li * 0.35) * 1.2;
       el.style.transform = `translateY(${wave}px)`;
+      for (let ci = 0; ci < chars.length; ci++) {
+        chars[ci].style.transform = '';
+      }
+      continue;
+    }
+
+    // Ship is near this line -- per-character displacement
+    el.style.transform = '';
+    const charWidth = line.width / Math.max(1, chars.length);
+
+    for (let ci = 0; ci < chars.length; ci++) {
+      const ch = chars[ci];
+      const cx = line.x + ci * charWidth + charWidth / 2;
+      const cy = lineCY;
+      const dx = cx - shipX;
+      const dy = cy - shipY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (dist < swimRadius && dist > 1) {
+        // Smooth cubic falloff for fluid feel
+        const ratio = 1 - dist / swimRadius;
+        const strength = ratio * ratio * swimForce;
+        const ox = (dx / dist) * strength;
+        const oy = (dy / dist) * strength;
+        ch.style.transform = `translate(${ox}px, ${oy}px)`;
+        ch.style.opacity = `${0.5 + 0.5 * (dist / swimRadius)}`;
+      } else {
+        const wave = Math.sin(t * 0.5 + li * 0.35 + ci * 0.08) * 0.8;
+        ch.style.transform = `translateY(${wave}px)`;
+        ch.style.opacity = '';
+      }
     }
   }
 
   if (dropCapEl) {
-    const floatY = Math.sin(t * 0.6) * 3;
+    const dcX = lines[0]?.x ?? 0;
+    const dcY = lines[0]?.y ?? 0;
+    const dx = dcX + dcWidth / 2 - shipX;
+    const dy = dcY + dcHeight / 2 - shipY;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+
+    let floatY = Math.sin(t * 0.6) * 3;
+    let floatX = 0;
+    if (dist < swimRadius * 1.5 && dist > 1) {
+      const ratio = 1 - dist / (swimRadius * 1.5);
+      const strength = ratio * ratio * swimForce * 1.5;
+      floatX = (dx / dist) * strength;
+      floatY += (dy / dist) * strength;
+    }
+
     const glow = 0.35 + Math.sin(t * 0.4) * 0.15;
-    dropCapEl.style.transform = `translateY(${floatY}px)`;
+    dropCapEl.style.transform = `translate(${floatX}px, ${floatY}px)`;
     dropCapEl.style.textShadow = `
       0 0 ${25 + glow * 30}px rgba(196, 162, 101, ${glow + 0.15}),
       0 0 ${50 + glow * 50}px rgba(196, 162, 101, ${glow * 0.35}),
