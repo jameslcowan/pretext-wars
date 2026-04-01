@@ -1455,7 +1455,123 @@ function destroyAlien(alien: Alien, idx: number) {
   killCount++;
 }
 
+// ── PM Boss ──────────────────────────────────
+function showBossBanner() {
+  const banner = document.createElement('div');
+  banner.className = 'boss-banner';
+  banner.textContent = 'PROJECT MANAGER INCOMING';
+  document.body.appendChild(banner);
+  setTimeout(() => banner.remove(), 2100);
+}
 
-// Forward declarations (replaced in next commits)
-function defeatBoss() {}
-function spawnBoss() {}
+function spawnBoss() {
+  if (gameOver || boss) return;
+  playBossWarning();
+  showBossBanner();
+
+  const el = document.createElement('div');
+  el.className = 'boss entering';
+  el.innerHTML = `
+    <div class="boss-window">
+      <div class="boss-titlebar">
+        <span class="boss-dot red"></span>
+        <span class="boss-dot yellow"></span>
+        <span class="boss-dot green"></span>
+        <span class="boss-title">standup.zoom</span>
+      </div>
+      <div class="boss-face">
+        <div class="boss-eyes"><span class="boss-eye">O</span><span class="boss-eye">O</span></div>
+        <div class="boss-mouth">~</div>
+      </div>
+      <div class="boss-speech">${PM_QUOTES[Math.floor(Math.random() * PM_QUOTES.length)]}</div>
+    </div>
+  `;
+  document.body.appendChild(el);
+
+  const bossHp = 15 + level * 8;
+  const edge = Math.random() < 0.5 ? -60 : window.innerWidth + 60;
+
+  boss = {
+    el,
+    x: edge,
+    y: window.innerHeight * 0.3 + Math.random() * window.innerHeight * 0.4,
+    r: 55,
+    vx: 0, vy: 0,
+    hp: bossHp,
+    maxHp: bossHp,
+    speed: 0.4 + level * 0.03,
+    speechTimer: 0,
+    active: true,
+  };
+
+  bossHud.classList.remove('hidden');
+  bossLabel.textContent = 'PROJECT MANAGER';
+  bossHpBar.style.width = '100%';
+}
+
+function tickBoss() {
+  if (!boss || !boss.active || gameOver) return;
+
+  const dx = shipX - boss.x;
+  const dy = shipY - boss.y;
+  const dist = Math.sqrt(dx * dx + dy * dy);
+  if (dist > 0) {
+    boss.vx += (dx / dist) * boss.speed * 0.02;
+    boss.vy += (dy / dist) * boss.speed * 0.02;
+  }
+  boss.vx *= 0.98;
+  boss.vy *= 0.98;
+
+  boss.x += boss.vx;
+  boss.y += boss.vy;
+
+  boss.el.style.transform = `translate(${boss.x - 50}px, ${boss.y - 40}px)`;
+
+  // Update speech periodically
+  boss.speechTimer++;
+  if (boss.speechTimer % 180 === 0) {
+    const speech = boss.el.querySelector('.boss-speech');
+    if (speech) speech.textContent = PM_QUOTES[Math.floor(Math.random() * PM_QUOTES.length)];
+  }
+
+  // Collision with ship
+  const shipDx = boss.x - shipX;
+  const shipDy = boss.y - shipY;
+  if (shipDx * shipDx + shipDy * shipDy < (boss.r + 14) * (boss.r + 14)) {
+    damageShip(25, boss.x, boss.y);
+  }
+
+  // Boss spawns minion bugs periodically
+  if (boss.speechTimer % 120 === 0 && aliens.length < 8) {
+    const bugX = boss.x + (Math.random() - 0.5) * 60;
+    const bugY = boss.y + (Math.random() - 0.5) * 60;
+    const el = createBugSVG();
+    document.body.appendChild(el);
+    aliens.push({
+      el, x: bugX, y: bugY, r: 16, vx: 0, vy: 0,
+      hp: 1, maxHp: 1, speed: 1 + level * 0.1,
+    });
+  }
+}
+
+function defeatBoss() {
+  if (!boss) return;
+  playBossDefeat();
+  const pts = 500;
+  addScore(pts);
+  showScorePopup(boss.x, boss.y - 50, pts, '#ff6644');
+  spawnExplosion(boss.x, boss.y, '#a855f7', 30);
+  spawnExplosion(boss.x, boss.y, '#ff6644', 20);
+  spawnExplosion(boss.x, boss.y, '#fff', 12);
+  spawnShockwave(boss.x, boss.y, '#a855f7');
+
+  flash.classList.add('active');
+  setTimeout(() => flash.classList.remove('active'), 200);
+
+  boss.el.remove();
+  boss = null;
+  bossHud.classList.add('hidden');
+  bossesDefeated++;
+  killCount++;
+}
+
