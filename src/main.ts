@@ -1105,8 +1105,93 @@ function tickKinetic(t: number) {
   }
 }
 
+// ── HUD ──────────────────────────────────────
+function updateHUD() {
+  const clampedHp = Math.max(0, Math.round(hp));
+  hpBar.style.width = `${clampedHp}%`;
+  hpText.textContent = `${clampedHp}`;
+  scoreDisplay.textContent = `${score}`;
+  levelDisplay.textContent = `LVL ${level}`;
+
+  if (hp <= 25) {
+    hpBar.classList.add('low');
+    hpBar.style.background = '';
+  } else {
+    hpBar.classList.remove('low');
+    if (hp <= 50) {
+      hpBar.style.background = 'linear-gradient(90deg, #d97757, #c4a265)';
+    } else {
+      hpBar.style.background = 'linear-gradient(90deg, #5bc4c4, #c4a265, #5bc4c4)';
+    }
+  }
+}
+
+function addScore(pts: number) {
+  score += pts;
+  const newLevel = LEVEL_THRESHOLDS.findIndex((_, i) =>
+    i === LEVEL_THRESHOLDS.length - 1 || score < LEVEL_THRESHOLDS[i + 1]
+  ) + 1;
+  if (newLevel > level) {
+    level = newLevel;
+    applyUpgrades();
+    playUpgrade();
+    showLevelUpFlash();
+  }
+
+  // Boss trigger
+  if (score >= nextBossScore && !boss) {
+    spawnBoss();
+    nextBossScore += 2500 + level * 500;
+  }
+}
+
+function getUpgradeText(): string {
+  const upgrades: string[] = [];
+  const newFireRate = Math.max(35, INITIAL_FIRE_RATE - (level - 1) * 13);
+  const prevFireRate = Math.max(35, INITIAL_FIRE_RATE - (level - 2) * 13);
+  if (newFireRate < prevFireRate) upgrades.push('fire rate up');
+  const newProjSpeed = INITIAL_PROJ_SPEED + (level - 1) * 2;
+  const prevProjSpeed = INITIAL_PROJ_SPEED + (level - 2) * 2;
+  if (newProjSpeed > prevProjSpeed) upgrades.push('projectile speed up');
+  if (level % 2 === 0) upgrades.push('enemies faster');
+  return upgrades.slice(0, 2).join(' + ');
+}
+
+function showLevelUpFlash() {
+  const el = document.createElement('div');
+  el.className = 'level-up-flash';
+  const upgradeText = getUpgradeText();
+  el.innerHTML = `LEVEL ${level}${upgradeText ? `<div class="level-up-sub">${upgradeText}</div>` : ''}`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1600);
+
+  showToast(`LVL ${level}`, '#5bc4c4');
+
+  levelDisplay.style.color = '#fff';
+  levelDisplay.style.textShadow = '0 0 20px #fff';
+  setTimeout(() => {
+    levelDisplay.style.color = '';
+    levelDisplay.style.textShadow = '';
+  }, 600);
+}
+
+function applyUpgrades() {
+  // Progressive ship upgrades
+  fireRate = Math.max(35, INITIAL_FIRE_RATE - (level - 1) * 13);
+  projSpeed = INITIAL_PROJ_SPEED + (level - 1) * 2;
+  projW = Math.min(5, INITIAL_PROJ_W + (level - 1) * 0.3);
+  projH = Math.min(18, INITIAL_PROJ_H + (level - 1) * 0.8);
+
+  // Ship speed scales with level
+  shipSpeed = Math.min(12, INITIAL_SHIP_SPEED + (level - 1) * 0.7);
+  // Aliens spawn faster and more
+  alienSpawnInterval = Math.max(2000, 8000 - (level - 1) * 500);
+  // Health packs slightly more frequent at high levels
+  healthPackInterval = Math.max(15000, 25000 - (level - 1) * 800);
+}
+
 
 // Forward declarations (replaced in next commits)
-function addScore(_pts: number, _x?: number, _y?: number) {}
 function destroyAlien(_a: Alien, _i: number) {}
 function defeatBoss() {}
+function spawnBoss() {}
