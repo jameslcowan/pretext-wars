@@ -344,26 +344,7 @@ window.addEventListener('pointermove', onPointerMove);
 window.addEventListener('pointerup', onPointerUp);
 
 // ── Mobile Virtual Controls ─────────────────
-if (isMobile && mobileFireBtn) {
-  mobileFireBtn.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (paused || gameOver) return;
-    if (!onboardingDismissed) { dismissOnboarding(); return; }
-    firing = true;
-    lastFireTime = 0;
-    mobileFireBtn.classList.add('active');
-  }, { passive: false });
-  mobileFireBtn.addEventListener('touchend', (e) => {
-    e.preventDefault();
-    firing = false;
-    mobileFireBtn.classList.remove('active');
-  }, { passive: false });
-  mobileFireBtn.addEventListener('touchcancel', () => {
-    firing = false;
-    mobileFireBtn.classList.remove('active');
-  });
-}
+// On mobile, firing is automatic -- no fire button needed
 
 let moveZoneTouchId: number | null = null;
 let moveZoneCenterX = 0;
@@ -440,6 +421,9 @@ function dismissOnboarding() {
   // Spawn a few buffs immediately so player has pickups right away
   setTimeout(() => { spawnBuffPickup(); spawnBuffPickup(); }, 500);
   setTimeout(() => spawnBuffPickup(), 2000);
+
+  // Auto-fire on mobile
+  if (isMobile) { firing = true; lastFireTime = 0; }
 }
 
 onboardingOverlay.addEventListener('pointerdown', (e) => {
@@ -459,6 +443,7 @@ function togglePause() {
     firing = false;
   } else {
     pauseOverlay.classList.add('hidden');
+    if (isMobile) firing = true;
   }
 }
 
@@ -1397,6 +1382,9 @@ function restartGame() {
   attributionEl.textContent = '';
   reflow();
   updateHUD();
+
+  // Re-enable auto-fire on mobile after restart
+  if (isMobile) { firing = true; lastFireTime = 0; }
 }
 
 goRestart.addEventListener('click', restartGame);

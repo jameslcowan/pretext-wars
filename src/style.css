@@ -1209,7 +1209,7 @@ html, body {
   /* Show mobile pause button, reticle, and controls */
   #pause-btn { display: block; }
   #mobile-reticle { display: block; }
-  #mobile-fire-btn { display: block; }
+  #mobile-fire-btn { display: none; }
   #mobile-move-zone { display: flex; }
 
   /* Mobile-specific content */
