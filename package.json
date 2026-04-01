@@ -1,6 +1,6 @@
 {
-  "name": "pretext-showcase",
-  "private": true,
+  "name": "pretext-wars",
+  "private": false,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
