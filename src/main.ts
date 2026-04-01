@@ -1772,3 +1772,131 @@ function tickBuffs() {
   }
 }
 
+// ── Edge Warning Arrows ─────────────────────
+function tickEdgeWarnings() {
+  edgeWarnings.innerHTML = '';
+  const margin = 30;
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+
+  const threats: { x: number; y: number; isBoss: boolean }[] = [];
+  for (const a of aliens) {
+    if (a.x < -margin || a.x > w + margin || a.y < -margin || a.y > h + margin) continue;
+    if (a.x < margin || a.x > w - margin || a.y < margin || a.y > h - margin) {
+      threats.push({ x: a.x, y: a.y, isBoss: false });
+    }
+  }
+  if (boss && boss.active) {
+    const bx = boss.x, by = boss.y;
+    if (bx < margin || bx > w - margin || by < margin || by > h - margin) {
+      threats.push({ x: bx, y: by, isBoss: true });
+    }
+  }
+
+  for (const t of threats) {
+    const arrow = document.createElement('div');
+    const bossClass = t.isBoss ? ' edge-warning--boss' : '';
+
+    if (t.x < margin) {
+      arrow.className = `edge-warning edge-warning--left${bossClass}`;
+      arrow.style.top = `${Math.max(20, Math.min(h - 20, t.y))}px`;
+    } else if (t.x > w - margin) {
+      arrow.className = `edge-warning edge-warning--right${bossClass}`;
+      arrow.style.top = `${Math.max(20, Math.min(h - 20, t.y))}px`;
+    } else if (t.y < margin) {
+      arrow.className = `edge-warning edge-warning--top${bossClass}`;
+      arrow.style.left = `${Math.max(20, Math.min(w - 20, t.x))}px`;
+    } else {
+      arrow.className = `edge-warning edge-warning--bottom${bossClass}`;
+      arrow.style.left = `${Math.max(20, Math.min(w - 20, t.x))}px`;
+    }
+
+    edgeWarnings.appendChild(arrow);
+  }
+}
+
+// ── Ship Collisions ──────────────────────────
+function tickShipCollisions() {
+  if (gameOver) return;
+
+  // Planet collisions
+  for (const p of planets) {
+    if (!p.el || p.el.classList.contains('exploding') || p.el.style.display === 'none') continue;
+    const dx = shipX - p.x;
+    const dy = shipY - p.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < p.r + 14) {
+      damageShip(8, p.x, p.y);
+    }
+  }
+}
+
+// ── Main Loop ─────────────────────────────────
+function tick() {
+  const t = performance.now() / 1000;
+
+  drawStars(t);
+  updateShip();
+
+  if (!gameOver && !paused && onboardingDismissed) {
+    tickPlanets();
+    tickProjectiles();
+    tickDestroyedChars();
+    tickAliens();
+    tickBoss();
+    tickShipCollisions();
+    tickHealthPacks();
+    tickBuffPickups();
+    tickBuffs();
+    tickEdgeWarnings();
+    reflow();
+    tickKinetic(t);
+    updateHUD();
+  } else if (!gameOver && onboardingDismissed) {
+    // Paused: still reflow and render, just don't advance game
+    reflow();
+    tickKinetic(t);
+  }
+
+  requestAnimationFrame(tick);
+}
+
+// ── Init ──────────────────────────────────────
+async function init() {
+  await document.fonts.load(`${FONT_SIZE}px "Cantata One"`);
+
+  initStars();
+  createPlanetEls();
+  attributionEl.textContent = currentPoem.attribution;
+  reflow();
+
+  lineEls.forEach((el, i) => {
+    el.style.opacity = '0';
+    gsap.to(el, { opacity: 1, duration: 0.5, delay: 0.3 + i * 0.04, ease: 'power2.out' });
+  });
+
+  if (dropCapEl) {
+    dropCapEl.style.opacity = '0';
+    gsap.to(dropCapEl, { opacity: 1, duration: 0.9, delay: 0.15, ease: 'power2.out' });
+  }
+
+  const now = performance.now();
+  lastAlienSpawn = now + 999999; // will be reset when onboarding dismissed
+  lastHealthPack = now + 999999;
+  lastBuffSpawn = now + 999999;
+  updateHUD();
+  loading.classList.add('hidden');
+  requestAnimationFrame(tick);
+}
+
+window.addEventListener('resize', () => {
+  initStars();
+  cachedLineTexts = [];
+  lineEls.forEach(el => el.remove());
+  lineEls = [];
+  charEls = [];
+  if (dropCapEl) { dropCapEl.remove(); dropCapEl = null; }
+  reflow();
+});
+
+init();
