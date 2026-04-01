@@ -430,7 +430,11 @@ function dismissOnboarding() {
   const now = gameStartTime;
   lastAlienSpawn = now + 12000; // delay first alien ~12s
   lastHealthPack = now + 20000;
-  lastBuffSpawn = now + 18000;
+  lastBuffSpawn = now;
+
+  // Spawn a few buffs immediately so player has pickups right away
+  setTimeout(() => { spawnBuffPickup(); spawnBuffPickup(); }, 500);
+  setTimeout(() => spawnBuffPickup(), 2000);
 }
 
 onboardingOverlay.addEventListener('pointerdown', (e) => {
