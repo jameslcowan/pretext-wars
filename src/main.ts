@@ -288,3 +288,187 @@ function syncPlanetEl(p: Orb, idx?: number) {
   }
 }
 
+// ── Pointer Events ───────────────────────────
+function onPointerDown(e: PointerEvent) {
+  if (paused) return;
+  if (!onboardingDismissed) { dismissOnboarding(); return; }
+  pointerX = e.clientX;
+  pointerY = e.clientY;
+
+  for (const p of planets) {
+    if (!p.el || p.el.classList.contains('exploding')) continue;
+    const dx = e.clientX - p.x;
+    const dy = e.clientY - p.y;
+    if (dx * dx + dy * dy < p.r * p.r) {
+      draggingPlanet = p;
+      dragOffsetX = dx;
+      dragOffsetY = dy;
+      p.vx = 0;
+      p.vy = 0;
+      e.preventDefault();
+      return;
+    }
+  }
+
+  if (!gameOver) {
+    firing = true;
+    lastFireTime = 0;
+  }
+}
+
+function onPointerMove(e: PointerEvent) {
+  pointerX = e.clientX;
+  pointerY = e.clientY;
+  if (paused) return;
+  if (draggingPlanet) {
+    draggingPlanet.x = e.clientX - dragOffsetX;
+    draggingPlanet.y = e.clientY - dragOffsetY;
+    syncPlanetEl(draggingPlanet);
+  }
+}
+
+function onPointerUp() {
+  draggingPlanet = null;
+  firing = false;
+}
+
+stage.addEventListener('pointerdown', onPointerDown);
+window.addEventListener('pointermove', onPointerMove);
+window.addEventListener('pointerup', onPointerUp);
+
+// ── Mobile Virtual Controls ─────────────────
+if (isMobile && mobileFireBtn) {
+  mobileFireBtn.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (paused || gameOver) return;
+    if (!onboardingDismissed) { dismissOnboarding(); return; }
+    firing = true;
+    lastFireTime = 0;
+    mobileFireBtn.classList.add('active');
+  }, { passive: false });
+  mobileFireBtn.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    firing = false;
+    mobileFireBtn.classList.remove('active');
+  }, { passive: false });
+  mobileFireBtn.addEventListener('touchcancel', () => {
+    firing = false;
+    mobileFireBtn.classList.remove('active');
+  });
+}
+
+let moveZoneTouchId: number | null = null;
+let moveZoneCenterX = 0;
+let moveZoneCenterY = 0;
+if (isMobile && mobileMoveZone && moveKnob) {
+  mobileMoveZone.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (paused || gameOver) return;
+    if (!onboardingDismissed) { dismissOnboarding(); return; }
+    const t = e.changedTouches[0];
+    moveZoneTouchId = t.identifier;
+    const rect = mobileMoveZone.getBoundingClientRect();
+    moveZoneCenterX = rect.left + rect.width / 2;
+    moveZoneCenterY = rect.top + rect.height / 2;
+  }, { passive: false });
+
+  const handleMoveTouch = (e: TouchEvent) => {
+    if (moveZoneTouchId === null) return;
+    for (let i = 0; i < e.changedTouches.length; i++) {
+      const t = e.changedTouches[i];
+      if (t.identifier === moveZoneTouchId) {
+        const dx = t.clientX - moveZoneCenterX;
+        const dy = t.clientY - moveZoneCenterY;
+        const maxR = 40;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const clampDist = Math.min(dist, maxR);
+        const nx = dist > 0 ? dx / dist : 0;
+        const ny = dist > 0 ? dy / dist : 0;
+        // Move knob visual
+        if (moveKnob) {
+          moveKnob.style.transform = `translate(calc(-50% + ${nx * clampDist}px), calc(-50% + ${ny * clampDist}px))`;
+        }
+        // Set pointer target based on joystick direction and strength
+        const strength = clampDist / maxR;
+        const moveRange = Math.min(window.innerWidth, window.innerHeight) * 0.4;
+        pointerX = shipX + nx * strength * moveRange;
+        pointerY = shipY + ny * strength * moveRange;
+      }
+    }
+  };
+
+  window.addEventListener('touchmove', handleMoveTouch, { passive: false });
+  window.addEventListener('touchend', (e) => {
+    for (let i = 0; i < e.changedTouches.length; i++) {
+      if (e.changedTouches[i].identifier === moveZoneTouchId) {
+        moveZoneTouchId = null;
+        if (moveKnob) moveKnob.style.transform = 'translate(-50%, -50%)';
+        // Stop movement by setting pointer to current ship position
+        pointerX = shipX;
+        pointerY = shipY;
+      }
+    }
+  });
+  window.addEventListener('touchcancel', () => {
+    moveZoneTouchId = null;
+    if (moveKnob) moveKnob.style.transform = 'translate(-50%, -50%)';
+    pointerX = shipX;
+    pointerY = shipY;
+  });
+}
+
+// ── Onboarding ───────────────────────────────
+function dismissOnboarding() {
+  if (onboardingDismissed) return;
+  onboardingDismissed = true;
+  onboardingOverlay.classList.add('hidden');
+  gameStartTime = performance.now();
+  const now = gameStartTime;
+  lastAlienSpawn = now + 12000; // delay first alien ~12s
+  lastHealthPack = now + 20000;
+  lastBuffSpawn = now + 18000;
+}
+
+onboardingOverlay.addEventListener('pointerdown', (e) => {
+  e.stopPropagation();
+  dismissOnboarding();
+});
+onboardingOverlay.addEventListener('keydown', dismissOnboarding);
+// Also auto-dismiss after 8 seconds
+setTimeout(() => dismissOnboarding(), 8000);
+
+// ── Pause ────────────────────────────────────
+function togglePause() {
+  if (!onboardingDismissed || gameOver) return;
+  paused = !paused;
+  if (paused) {
+    pauseOverlay.classList.remove('hidden');
+    firing = false;
+  } else {
+    pauseOverlay.classList.add('hidden');
+  }
+}
+
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') togglePause();
+  if (!onboardingDismissed) dismissOnboarding();
+});
+
+// Mobile pause button
+pauseBtn.addEventListener('pointerdown', (e) => {
+  e.stopPropagation();
+  e.preventDefault();
+  togglePause();
+});
+
+// Tap pause overlay to resume (mobile-friendly)
+pauseOverlay.addEventListener('pointerdown', (e) => {
+  e.stopPropagation();
+  if (paused) togglePause();
+});
+
+// Prevent context menu on long press (mobile)
+document.addEventListener('contextmenu', (e) => e.preventDefault());
+
