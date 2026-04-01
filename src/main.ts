@@ -459,11 +459,31 @@ pauseBtn.addEventListener('pointerdown', (e) => {
   togglePause();
 });
 
-// Tap pause overlay to resume (mobile-friendly)
+// Tap pause overlay to resume (mobile-friendly, but not on the toggle button)
 pauseOverlay.addEventListener('pointerdown', (e) => {
+  if ((e.target as HTMLElement).id === 'hand-toggle-btn') return;
   e.stopPropagation();
   if (paused) togglePause();
 });
+
+// Left-handed toggle
+const handToggleBtn = document.getElementById('hand-toggle-btn');
+if (handToggleBtn) {
+  let leftHanded = localStorage.getItem('leftHanded') === 'true';
+  if (leftHanded) document.body.classList.add('left-handed');
+  const updateLabel = () => {
+    handToggleBtn.textContent = leftHanded ? 'RIGHT-HANDED MODE' : 'LEFT-HANDED MODE';
+  };
+  updateLabel();
+  handToggleBtn.addEventListener('pointerdown', (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    leftHanded = !leftHanded;
+    document.body.classList.toggle('left-handed', leftHanded);
+    localStorage.setItem('leftHanded', String(leftHanded));
+    updateLabel();
+  });
+}
 
 // Prevent context menu on long press (mobile)
 document.addEventListener('contextmenu', (e) => e.preventDefault());
