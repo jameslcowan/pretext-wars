@@ -18,7 +18,7 @@ const INITIAL_FIRE_RATE = 150; // slow at start
 const INITIAL_PROJ_SPEED = 12;
 const INITIAL_PROJ_W = 2;
 const INITIAL_PROJ_H = 10;
-const INITIAL_SHIP_SPEED = isMobile ? 5 : 4; // px per frame max
+const INITIAL_SHIP_SPEED = isMobile ? 3.5 : 4; // px per frame max
 
 // ── DOM refs ──────────────────────────────────
 const stage = document.getElementById('stage')!;
@@ -399,7 +399,7 @@ if (isMobile && mobileMoveZone && moveKnob) {
         }
         // Set pointer target based on joystick direction and strength
         const strength = clampDist / maxR;
-        const moveRange = Math.min(window.innerWidth, window.innerHeight) * 0.4;
+        const moveRange = Math.min(window.innerWidth, window.innerHeight) * 0.15;
         pointerX = shipX + nx * strength * moveRange;
         pointerY = shipY + ny * strength * moveRange;
       }
