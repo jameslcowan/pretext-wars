@@ -18,7 +18,7 @@ const INITIAL_FIRE_RATE = 150; // slow at start
 const INITIAL_PROJ_SPEED = 12;
 const INITIAL_PROJ_W = 2;
 const INITIAL_PROJ_H = 10;
-const INITIAL_SHIP_SPEED = isMobile ? 3.5 : 4; // px per frame max
+const INITIAL_SHIP_SPEED = isMobile ? 2.2 : 4; // px per frame max
 
 // ── DOM refs ──────────────────────────────────
 const stage = document.getElementById('stage')!;
@@ -384,7 +384,7 @@ if (isMobile && mobileMoveZone && moveKnob) {
         }
         // Set pointer target based on joystick direction and strength
         const strength = clampDist / maxR;
-        const moveRange = Math.min(window.innerWidth, window.innerHeight) * 0.15;
+        const moveRange = Math.min(window.innerWidth, window.innerHeight) * 0.08;
         pointerX = shipX + nx * strength * moveRange;
         pointerY = shipY + ny * strength * moveRange;
       }
@@ -1266,7 +1266,7 @@ function applyUpgrades() {
   projH = Math.min(18, INITIAL_PROJ_H + (level - 1) * 0.8);
 
   // Ship speed scales with level
-  shipSpeed = Math.min(12, INITIAL_SHIP_SPEED + (level - 1) * 0.7);
+  shipSpeed = Math.min(isMobile ? 5 : 12, INITIAL_SHIP_SPEED + (level - 1) * (isMobile ? 0.3 : 0.7));
   // Aliens spawn faster and more
   alienSpawnInterval = Math.max(2000, 8000 - (level - 1) * 500);
   // Health packs slightly more frequent at high levels
