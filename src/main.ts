@@ -472,3 +472,56 @@ pauseOverlay.addEventListener('pointerdown', (e) => {
 // Prevent context menu on long press (mobile)
 document.addEventListener('contextmenu', (e) => e.preventDefault());
 
+// ── Ship Cursor ───────────────────────────────
+function getEffectiveShipSpeed(): number {
+  let spd = shipSpeed;
+  if (activeBuffs.some(b => b.name === 'Go')) spd *= 1.5;
+  return spd;
+}
+
+function updateShip() {
+  // Smooth movement: shipX/shipY lerp toward pointer with max speed
+  const dx = pointerX - shipX;
+  const dy = pointerY - shipY;
+  const dist = Math.sqrt(dx * dx + dy * dy);
+  const maxSpeed = getEffectiveShipSpeed();
+
+  if (dist > 1) {
+    if (dist <= maxSpeed) {
+      shipX = pointerX;
+      shipY = pointerY;
+    } else {
+      shipX += (dx / dist) * maxSpeed;
+      shipY += (dy / dist) * maxSpeed;
+    }
+
+    // Rotation tracks movement direction
+    const target = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
+    let diff = target - shipAngle;
+    while (diff > 180) diff -= 360;
+    while (diff < -180) diff += 360;
+    shipAngle += diff * 0.15;
+  }
+
+  // Clamp ship to viewport bounds
+  const margin = 18;
+  shipX = Math.max(margin, Math.min(window.innerWidth - margin, shipX));
+  shipY = Math.max(margin, Math.min(window.innerHeight - margin, shipY));
+
+  ship.style.transform = `translate(${shipX - 18}px, ${shipY - 18}px) rotate(${shipAngle}deg)`;
+
+  // Mobile reticle
+  if (isMobile) {
+    const reticle = document.getElementById('mobile-reticle');
+    if (reticle) reticle.style.transform = `translate(${shipX - 12}px, ${shipY - 12}px)`;
+  }
+
+  // Invulnerability blink
+  const now = performance.now();
+  if (now < shipInvulnerable && !gameOver) {
+    ship.classList.add('invulnerable');
+  } else {
+    ship.classList.remove('invulnerable');
+  }
+}
+
