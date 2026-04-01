@@ -229,3 +229,62 @@ function drawStars(t: number) {
   }
 }
 
+// ── Planets ───────────────────────────────────
+const planetRadius = isMobile ? 40 : 75;
+const sw = window.innerWidth;
+const sh = window.innerHeight;
+const planets: Orb[] = [
+  { x: sw * 0.75, y: sh * 0.2, r: planetRadius * 1.1, vx: 0.15, vy: 0.08, className: 'planet--jupiter' },
+  { x: sw * 0.25, y: sh * 0.35, r: planetRadius * 0.95, vx: 0.22, vy: 0.12, className: 'planet--saturn' },
+  { x: sw * 0.6, y: sh * 0.55, r: planetRadius * 0.75, vx: -0.12, vy: 0.16, className: 'planet--earth' },
+  { x: sw * 0.4, y: sh * 0.75, r: planetRadius * 0.6, vx: -0.18, vy: 0.2, className: 'planet--mars' },
+  { x: sw * 0.82, y: sh * 0.7, r: planetRadius * 0.45, vx: 0.14, vy: -0.18, className: 'planet--neptune' },
+];
+
+function getPlanetMaxHp(r: number): number {
+  return Math.max(3, Math.round(r / 12));
+}
+
+function createPlanetEls() {
+  for (let i = 0; i < planets.length; i++) {
+    const p = planets[i];
+    const el = document.createElement('div');
+    el.className = `planet ${p.className}`;
+    el.style.width = `${p.r * 2}px`;
+    el.style.height = `${p.r * 2}px`;
+    stage.appendChild(el);
+    p.el = el;
+
+    // HP bar element above planet
+    const hpEl = document.createElement('div');
+    hpEl.className = 'planet-hp-bar-wrap';
+    hpEl.innerHTML = '<div class="planet-hp-bar-fill"></div>';
+    hpEl.style.width = `${Math.min(p.r * 1.4, 80)}px`;
+    stage.appendChild(hpEl);
+    planetHpEls.push(hpEl);
+
+    const mhp = getPlanetMaxHp(p.r);
+    planetMaxHp.push(mhp);
+    planetHp.push(mhp);
+
+    syncPlanetEl(p, i);
+  }
+}
+
+function syncPlanetEl(p: Orb, idx?: number) {
+  if (!p.el) return;
+  p.el.style.transform = `translate(${p.x - p.r}px, ${p.y - p.r}px)`;
+
+  // Update HP bar position
+  const i = idx !== undefined ? idx : planets.indexOf(p);
+  if (i >= 0 && planetHpEls[i]) {
+    const barW = Math.min(p.r * 1.4, 80);
+    planetHpEls[i].style.left = `${p.x - barW / 2}px`;
+    planetHpEls[i].style.top = `${p.y - p.r - 12}px`;
+    const fill = planetHpEls[i].querySelector('.planet-hp-bar-fill') as HTMLElement;
+    if (fill) fill.style.width = `${(planetHp[i] / planetMaxHp[i]) * 100}%`;
+    // Only show HP bar when damaged
+    planetHpEls[i].style.opacity = planetHp[i] < planetMaxHp[i] ? '1' : '0';
+  }
+}
+
