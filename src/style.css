@@ -1166,7 +1166,7 @@ html, body {
 #pause-btn {
   display: none; /* shown on mobile only */
   position: fixed;
-  top: max(0.5rem, env(safe-area-inset-top, 0px));
+  top: max(2.6rem, calc(env(safe-area-inset-top, 0px) + 2.2rem));
   right: max(0.5rem, env(safe-area-inset-right, 0px));
   z-index: 70;
   background: rgba(255, 255, 255, 0.08);
@@ -1198,7 +1198,7 @@ html, body {
     padding: 0.4rem 0.6rem;
     padding-top: max(0.4rem, env(safe-area-inset-top, 0px));
     padding-left: max(0.6rem, env(safe-area-inset-left, 0px));
-    padding-right: max(2.8rem, env(safe-area-inset-right, 0px)); /* room for pause btn */
+    padding-right: max(0.6rem, env(safe-area-inset-right, 0px));
   }
   #hp-container { width: min(160px, 50vw); height: 14px; }
   #score-display { font-size: 0.6rem; }
