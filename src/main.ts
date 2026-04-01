@@ -1190,6 +1190,132 @@ function applyUpgrades() {
   healthPackInterval = Math.max(15000, 25000 - (level - 1) * 800);
 }
 
+// ── Damage System ─────────────────────────────
+function damageShip(amount: number, fromX?: number, fromY?: number) {
+  if (gameOver) return;
+  const now = performance.now();
+  if (now < shipInvulnerable) return;
+
+  // Shield buff absorbs one hit
+  const shieldIdx = activeBuffs.findIndex(b => b.name === 'React');
+  if (shieldIdx >= 0) {
+    activeBuffs[shieldIdx].badgeEl.remove();
+    activeBuffs.splice(shieldIdx, 1);
+    spawnExplosion(shipX, shipY, '#61dafb', 10);
+    showToast('REACT SHIELD ABSORBED', '#61dafb');
+    shipInvulnerable = now + 300;
+    return;
+  }
+
+  hp -= amount;
+  shipInvulnerable = now + 600;
+  playShipHit();
+
+  // Ship flash
+  ship.classList.add('hit');
+  setTimeout(() => ship.classList.remove('hit'), 250);
+
+  // Damage vignette
+  dmgVignette.classList.add('active');
+  setTimeout(() => dmgVignette.classList.remove('active'), 300);
+
+  // Screen shake - direction from damage source
+  let shakeX = (Math.random() - 0.5) * 8;
+  let shakeY = (Math.random() - 0.5) * 8;
+  if (fromX !== undefined && fromY !== undefined) {
+    const dx = shipX - fromX;
+    const dy = shipY - fromY;
+    const d = Math.sqrt(dx * dx + dy * dy) || 1;
+    shakeX = (dx / d) * 8;
+    shakeY = (dy / d) * 8;
+  }
+  stage.style.transform = `translate(${shakeX}px, ${shakeY}px)`;
+  setTimeout(() => { stage.style.transform = ''; }, 100);
+
+  // Damage spark particles at ship
+  spawnExplosion(shipX, shipY, '#ff4444', 6);
+
+  if (hp <= 0) {
+    hp = 0;
+    triggerGameOver();
+  }
+}
+
+function triggerGameOver() {
+  gameOver = true;
+  firing = false;
+  playGameOver();
+  goScoreVal.textContent = `${score}`;
+  goLevelVal.textContent = `${level}`;
+  goStats.innerHTML = `Kills: ${killCount}<br>Bosses: ${bossesDefeated}`;
+  gameOverScreen.classList.add('active');
+}
+
+function restartGame() {
+  score = 0;
+  hp = 100;
+  level = 1;
+  gameOver = false;
+  shipInvulnerable = 0;
+  fireRate = INITIAL_FIRE_RATE;
+  projSpeed = INITIAL_PROJ_SPEED;
+  projW = INITIAL_PROJ_W;
+  projH = INITIAL_PROJ_H;
+  shipSpeed = INITIAL_SHIP_SPEED;
+  alienSpawnInterval = 8000;
+  healthPackInterval = 25000;
+  buffSpawnInterval = 30000;
+  killCount = 0;
+  bossesDefeated = 0;
+  nextBossScore = 1500;
+  paused = false;
+  pauseOverlay.classList.add('hidden');
+  gameStartTime = performance.now();
+  const now = gameStartTime;
+  lastAlienSpawn = now + 8000; // brief grace period on restart
+  lastHealthPack = now + 15000;
+  lastBuffSpawn = now + 12000;
+
+  // Clear entities
+  for (const a of aliens) a.el.remove();
+  aliens.length = 0;
+  for (const p of projectiles) p.el.remove();
+  projectiles.length = 0;
+  for (const d of destroyedChars) d.el.style.opacity = '0';
+  destroyedChars.length = 0;
+  for (const h of healthPacks) h.el.remove();
+  healthPacks.length = 0;
+  for (const b of buffPickups) b.el.remove();
+  buffPickups.length = 0;
+  for (const b of activeBuffs) b.badgeEl.remove();
+  activeBuffs.length = 0;
+  destroyedTextOffsets.clear();
+  cachedLineTexts = [];
+  dropCapDestroyed = false;
+  for (let i = 0; i < planets.length; i++) {
+    planetHp[i] = planetMaxHp[i];
+  }
+
+  if (boss) {
+    boss.el.remove();
+    boss = null;
+    bossHud.classList.add('hidden');
+  }
+
+  gameOverScreen.classList.remove('active');
+
+  lineEls.forEach(el => el.remove());
+  lineEls = [];
+  charEls = [];
+  if (dropCapEl) { dropCapEl.remove(); dropCapEl = null; }
+  currentPoem = getRandomPoem();
+  attributionEl.textContent = currentPoem.attribution;
+  reflow();
+  updateHUD();
+}
+
+goRestart.addEventListener('click', restartGame);
+
 
 // Forward declarations (replaced in next commits)
 function destroyAlien(_a: Alien, _i: number) {}
