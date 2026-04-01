@@ -512,8 +512,8 @@ function updateShip() {
   // Apply and decay knockback
   shipX += shipKnockVX;
   shipY += shipKnockVY;
-  shipKnockVX *= 0.92;
-  shipKnockVY *= 0.92;
+  shipKnockVX *= 0.94;
+  shipKnockVY *= 0.94;
   if (Math.abs(shipKnockVX) < 0.1) shipKnockVX = 0;
   if (Math.abs(shipKnockVY) < 0.1) shipKnockVY = 0;
 
@@ -1098,8 +1098,8 @@ function renderDropCap() {
 
 // ── Kinetic Effects ───────────────────────────
 function tickKinetic(t: number) {
-  const swimRadius = isMobile ? 90 : 140;
-  const swimForce = isMobile ? 14 : 22;
+  const swimRadius = isMobile ? 60 : 90;
+  const swimForce = firing ? (isMobile ? 4 : 6) : (isMobile ? 10 : 16);
 
   for (let li = 0; li < lineEls.length; li++) {
     const el = lineEls[li];
