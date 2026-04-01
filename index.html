@@ -60,5 +60,33 @@
 
   <!-- Buff indicator -->
   <div id="buff-indicator"></div>
+
+  <!-- Game Over -->
+  <div id="game-over">
+    <div class="go-content">
+      <div class="go-title">GAME OVER</div>
+      <div class="go-score">Score: <span id="go-score-val">0</span></div>
+      <div class="go-level">Level: <span id="go-level-val">1</span></div>
+      <div class="go-stats" id="go-stats"></div>
+      <button id="go-restart">RESTART</button>
+    </div>
+  </div>
+
+  <!-- Mobile reticle (shown on mobile only) -->
+  <svg id="mobile-reticle" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="12" cy="12" r="8" stroke="#5bc4c4" stroke-width="0.8" opacity="0.6"/>
+    <line x1="12" y1="2" x2="12" y2="6" stroke="#5bc4c4" stroke-width="0.8" opacity="0.5"/>
+    <line x1="12" y1="18" x2="12" y2="22" stroke="#5bc4c4" stroke-width="0.8" opacity="0.5"/>
+    <line x1="2" y1="12" x2="6" y2="12" stroke="#5bc4c4" stroke-width="0.8" opacity="0.5"/>
+    <line x1="18" y1="12" x2="22" y2="12" stroke="#5bc4c4" stroke-width="0.8" opacity="0.5"/>
+    <circle cx="12" cy="12" r="2" fill="#5bc4c4" opacity="0.4"/>
+  </svg>
+
+  <!-- Mobile Controls -->
+  <div id="mobile-fire-btn" aria-label="Fire"></div>
+  <div id="mobile-move-zone"><div class="move-knob"></div></div>
+
+  <div id="hint" aria-hidden="true">hold to fire &middot; destroy everything</div>
+  <div id="attribution" aria-hidden="true"></div>
 </body>
 </html>
