@@ -954,6 +954,157 @@ function tickPlanets() {
   }
 }
 
+// ── Drop cap measurement (cached) ─────────────
+const dcFontSize = FONT_SIZE * DROP_CAP_SCALE;
+const _dcMeasureCtx = document.createElement('canvas').getContext('2d')!;
+_dcMeasureCtx.font = fontString(dcFontSize);
+const dcWidth = _dcMeasureCtx.measureText('I').width + 16;
+const dcHeight = LINE_HEIGHT * DROP_CAP_LINES;
+
+// ── Text Layout & Rendering ───────────────────
+function reflow() {
+  const activePlanets = planets.filter(p => p.el && !p.el.classList.contains('exploding') && p.el.style.display !== 'none');
+
+  const hudClearance = isMobile ? 50 : 65;
+  lines = layoutAroundOrbs(
+    currentPoem.text,
+    FONT_SIZE,
+    LINE_HEIGHT,
+    window.innerWidth,
+    window.innerHeight,
+    PADDING,
+    activePlanets,
+    { width: dcWidth, height: dcHeight },
+    hudClearance,
+  );
+
+  // Check if DOM rebuild is needed (line texts changed)
+  const needsRebuild = lines.length !== cachedLineTexts.length ||
+    lines.some((l, i) => l.text !== cachedLineTexts[i]);
+
+  // Ensure we have enough line elements
+  while (lineEls.length > lines.length) {
+    const el = lineEls.pop()!;
+    el.remove();
+    charEls.pop();
+  }
+
+  if (needsRebuild) {
+    cachedLineTexts = lines.map(l => l.text);
+    rebuildCharSpans();
+  }
+
+  // Always update positions
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    let lineX = line.x;
+    if (i === 0) lineX = PADDING + dcWidth;
+    lineEls[i].style.left = `${lineX}px`;
+    lineEls[i].style.top = `${line.y}px`;
+  }
+
+  renderDropCap();
+}
+
+function rebuildCharSpans() {
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    let el = lineEls[i];
+
+    if (!el) {
+      el = document.createElement('div');
+      el.className = 'line';
+      el.style.fontSize = `${FONT_SIZE}px`;
+      container.appendChild(el);
+      lineEls.push(el);
+      charEls.push([]);
+    }
+
+    let displayText = line.text;
+    let textStartOffset = line.startOffset;
+
+    if (i === 0) {
+      displayText = line.text.slice(1);
+      textStartOffset += 1;
+    }
+
+    el.textContent = '';
+    const newCharEls: HTMLElement[] = [];
+    for (let c = 0; c < displayText.length; c++) {
+      const span = document.createElement('span');
+      span.className = 'ch';
+      const absOffset = textStartOffset + c;
+      span.dataset.offset = String(absOffset);
+
+      if (destroyedTextOffsets.has(absOffset)) {
+        span.classList.add('destroyed');
+        span.style.opacity = '0';
+        span.style.pointerEvents = 'none';
+      }
+
+      span.textContent = displayText[c] === ' ' ? '\u00A0' : displayText[c];
+      el.appendChild(span);
+      newCharEls.push(span);
+    }
+    charEls[i] = newCharEls;
+
+    el.style.opacity = '1';
+    el.style.transform = '';
+  }
+}
+
+function renderDropCap() {
+  if (lines.length === 0) return;
+  if (dropCapDestroyed) return;
+  const firstChar = lines[0].text[0];
+
+  if (!dropCapEl) {
+    dropCapEl = document.createElement('div');
+    dropCapEl.className = 'drop-cap';
+    container.appendChild(dropCapEl);
+  }
+
+  dropCapEl.textContent = firstChar;
+  dropCapEl.style.fontSize = `${dcFontSize}px`;
+  dropCapEl.style.left = `${lines[0].x}px`;
+  dropCapEl.style.top = `${lines[0].y}px`;
+  dropCapEl.style.width = `${dcWidth}px`;
+}
+
+// ── Kinetic Effects ───────────────────────────
+function tickKinetic(t: number) {
+  for (let li = 0; li < lineEls.length; li++) {
+    const el = lineEls[li];
+    const line = lines[li];
+    if (!line) continue;
+
+    const cy = line.y + LINE_HEIGHT / 2;
+    const cx = line.x + line.width / 2;
+    const dx = cx - shipX;
+    const dy = cy - shipY;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const radius = isMobile ? 100 : 160;
+
+    if (dist < radius && dist > 0) {
+      const force = (1 - dist / radius) * (isMobile ? 5 : 10);
+      el.style.transform = `translate(${(dx / dist) * force}px, ${(dy / dist) * force}px)`;
+    } else {
+      const wave = Math.sin(t * 0.5 + li * 0.35) * 1.2;
+      el.style.transform = `translateY(${wave}px)`;
+    }
+  }
+
+  if (dropCapEl) {
+    const floatY = Math.sin(t * 0.6) * 3;
+    const glow = 0.35 + Math.sin(t * 0.4) * 0.15;
+    dropCapEl.style.transform = `translateY(${floatY}px)`;
+    dropCapEl.style.textShadow = `
+      0 0 ${25 + glow * 30}px rgba(196, 162, 101, ${glow + 0.15}),
+      0 0 ${50 + glow * 50}px rgba(196, 162, 101, ${glow * 0.35}),
+      0 0 90px rgba(196, 162, 101, 0.06)`;
+  }
+}
+
 
 // Forward declarations (replaced in next commits)
 function addScore(_pts: number, _x?: number, _y?: number) {}
