@@ -88,5 +88,70 @@
 
   <div id="hint" aria-hidden="true">hold to fire &middot; destroy everything</div>
   <div id="attribution" aria-hidden="true"></div>
+
+  <!-- Onboarding Overlay -->
+  <div id="onboarding">
+    <div class="ob-content">
+      <div class="ob-title">CONTROLS</div>
+      <div class="ob-items">
+        <div class="ob-item">
+          <div class="ob-icon">&#9650;</div>
+          <div class="ob-label">MOVE<br><span class="ob-sub ob-sub-desktop">mouse</span><span class="ob-sub ob-sub-mobile">drag finger</span></div>
+        </div>
+        <div class="ob-item">
+          <div class="ob-icon">&#9679;</div>
+          <div class="ob-label">FIRE<br><span class="ob-sub ob-sub-desktop">hold click</span><span class="ob-sub ob-sub-mobile">hold tap</span></div>
+        </div>
+        <div class="ob-item">
+          <div class="ob-icon">&#9733;</div>
+          <div class="ob-label">COLLECT<br><span class="ob-sub">fly over pickups</span></div>
+        </div>
+        <div class="ob-item">
+          <div class="ob-icon">&#9888;</div>
+          <div class="ob-label">SURVIVE<br><span class="ob-sub">avoid bugs &amp; planets</span></div>
+        </div>
+      </div>
+      <div class="ob-start"><span class="ob-sub-desktop">click to begin</span><span class="ob-sub-mobile">tap to begin</span></div>
+    </div>
+  </div>
+
+  <!-- Mobile Pause Button -->
+  <button id="pause-btn" aria-label="Pause">&#10074;&#10074;</button>
+
+  <!-- Pause/Help Overlay -->
+  <div id="pause-overlay" class="hidden">
+    <div class="pause-content">
+      <div class="pause-title">PAUSED</div>
+      <div class="pause-controls">
+        <div class="pause-row pause-desktop"><span class="pause-key">MOUSE</span> Move ship</div>
+        <div class="pause-row pause-mobile"><span class="pause-key">DRAG</span> Move &amp; aim</div>
+        <div class="pause-row"><span class="pause-key">HOLD</span> Fire weapons</div>
+        <div class="pause-row pause-desktop"><span class="pause-key">ESC</span> Pause / Resume</div>
+        <div class="pause-row pause-desktop"><span class="pause-key">DRAG</span> Move planets</div>
+      </div>
+      <div class="pause-legend">
+        <div class="pause-legend-item"><span class="pl-swatch" style="background:#22aa44"></span> Health +30</div>
+        <div class="pause-legend-item"><span class="pl-swatch" style="background:#3178c6"></span> TS: Fire x2</div>
+        <div class="pause-legend-item"><span class="pl-swatch" style="background:#61dafb"></span> React: Shield</div>
+        <div class="pause-legend-item"><span class="pl-swatch" style="background:#2496ed"></span> Docker: Dmg x2</div>
+        <div class="pause-legend-item"><span class="pl-swatch" style="background:#dea584"></span> Rust: Invuln</div>
+        <div class="pause-legend-item"><span class="pl-swatch" style="background:#f7df1e"></span> JS: Random</div>
+        <div class="pause-legend-item"><span class="pl-swatch" style="background:#3776ab"></span> Python: 3-shot</div>
+        <div class="pause-legend-item"><span class="pl-swatch" style="background:#00add8"></span> Go: Speed</div>
+        <div class="pause-legend-item"><span class="pl-swatch" style="background:#326ce5"></span> K8s: Regen</div>
+        <div class="pause-legend-item"><span class="pl-swatch" style="background:#4fc08d"></span> Vue: Magnet</div>
+        <div class="pause-legend-item"><span class="pl-swatch" style="background:#f05032"></span> Git: +25 HP</div>
+      </div>
+      <div class="pause-resume"><span class="pause-desktop">press ESC to resume</span><span class="pause-mobile">tap to resume</span></div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container"></div>
+
+  <!-- Edge Warnings Container -->
+  <div id="edge-warnings"></div>
+
+  <script type="module" src="/src/main.ts"></script>
 </body>
 </html>
