@@ -863,7 +863,7 @@ html, body {
 }
 .pause-row {
   font-family: var(--font);
-  font-size: 0.38rem;
+  font-size: clamp(0.75rem, 1.8vw, 1rem);
   letter-spacing: 0.15em;
   color: rgba(212, 203, 184, 0.6);
   margin-bottom: 0.5rem;
@@ -876,7 +876,7 @@ html, body {
   border: 1px solid rgba(196, 162, 101, 0.3);
   border-radius: 3px;
   color: var(--gold);
-  font-size: 0.32rem;
+  font-size: clamp(0.65rem, 1.5vw, 0.9rem);
   letter-spacing: 0.2em;
   text-align: center;
 }
@@ -892,7 +892,7 @@ html, body {
   align-items: center;
   gap: 6px;
   font-family: var(--font);
-  font-size: 0.3rem;
+  font-size: clamp(0.6rem, 1.4vw, 0.85rem);
   letter-spacing: 0.12em;
   color: rgba(212, 203, 184, 0.5);
 }
@@ -904,7 +904,7 @@ html, body {
 }
 .pause-resume {
   font-family: var(--font);
-  font-size: 0.32rem;
+  font-size: clamp(0.65rem, 1.5vw, 0.9rem);
   letter-spacing: 0.3em;
   text-transform: uppercase;
   color: rgba(212, 203, 184, 0.3);
@@ -1231,8 +1231,8 @@ html, body {
   .buff-badge-effect { display: none; }
 
   /* Pause overlay compact */
-  .pause-legend { gap: 0.4rem; }
-  .pause-legend-item { font-size: 0.25rem; }
+  .pause-legend { gap: 0.5rem 0.8rem; }
+  .pause-legend-item { font-size: clamp(0.55rem, 2.5vw, 0.75rem); }
 
   /* Level-up sub smaller */
   .level-up-sub { font-size: 0.3rem; }
