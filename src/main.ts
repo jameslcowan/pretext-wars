@@ -1975,12 +1975,12 @@ function tickMeteorShower() {
     const dx = m.x - shipX;
     const dy = m.y - shipY;
     const dist = Math.sqrt(dx * dx + dy * dy);
-    if (dist < 25) {
-      // Knockback in the direction the meteor was traveling
-      shipKnockVX += m.vx * 1.2;
-      shipKnockVY += m.vy * 1.2;
-      // Burst the letter
+    if (dist < 40) {
+      // Strong knockback in meteor's travel direction
+      shipKnockVX += m.vx * 4;
+      shipKnockVY += m.vy * 4;
       m.life = 0;
+      playShipHit();
     }
 
     // Remove if dead or off screen
