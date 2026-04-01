@@ -1316,8 +1316,146 @@ function restartGame() {
 
 goRestart.addEventListener('click', restartGame);
 
+// ── Bug Aliens ───────────────────────────────
+function createBugSVG(): SVGSVGElement {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('viewBox', '0 0 32 32');
+  svg.setAttribute('width', '32');
+  svg.setAttribute('height', '32');
+  svg.classList.add('alien');
+  svg.innerHTML = `
+    <ellipse cx="16" cy="19" rx="8" ry="10" fill="#1a0a2e" stroke="#a855f7" stroke-width="0.6"/>
+    <circle cx="16" cy="9" r="5" fill="#2d1050" stroke="#a855f7" stroke-width="0.5"/>
+    <circle cx="13.5" cy="8" r="1.8" fill="#ff4444" opacity="0.9"/>
+    <circle cx="18.5" cy="8" r="1.8" fill="#ff4444" opacity="0.9"/>
+    <circle cx="13.5" cy="8" r="0.6" fill="#fff"/>
+    <circle cx="18.5" cy="8" r="0.6" fill="#fff"/>
+    <line x1="13" y1="5" x2="9" y2="1" stroke="#a855f7" stroke-width="0.5"/>
+    <line x1="19" y1="5" x2="23" y2="1" stroke="#a855f7" stroke-width="0.5"/>
+    <circle cx="9" cy="1" r="1" fill="#e879f9"/>
+    <circle cx="23" cy="1" r="1" fill="#e879f9"/>
+    <ellipse cx="10" cy="17" rx="5" ry="7" fill="rgba(168, 85, 247, 0.12)" stroke="#a855f7" stroke-width="0.3"/>
+    <ellipse cx="22" cy="17" rx="5" ry="7" fill="rgba(168, 85, 247, 0.12)" stroke="#a855f7" stroke-width="0.3"/>
+  `;
+  svg.style.filter = 'drop-shadow(0 0 8px rgba(168, 85, 247, 0.6))';
+  return svg;
+}
+
+function spawnAlien() {
+  if (gameOver) return;
+  playAlienSpawn();
+
+  const edge = Math.floor(Math.random() * 4);
+  let x: number, y: number;
+  if (edge === 0) { x = -30; y = Math.random() * window.innerHeight; }
+  else if (edge === 1) { x = window.innerWidth + 30; y = Math.random() * window.innerHeight; }
+  else if (edge === 2) { x = Math.random() * window.innerWidth; y = -30; }
+  else { x = Math.random() * window.innerWidth; y = window.innerHeight + 30; }
+
+  const el = createBugSVG();
+  document.body.appendChild(el);
+
+  const alienHp = 1 + Math.floor(level / 3);
+  // Speed scales with level for faster monsters
+  const speed = 0.6 + Math.random() * 0.4 + level * 0.12;
+
+  aliens.push({ el, x, y, r: 16, vx: 0, vy: 0, hp: alienHp, maxHp: alienHp, speed });
+}
+
+function tickAliens() {
+  if (gameOver) return;
+
+  const now = performance.now();
+  if (now - lastAlienSpawn > alienSpawnInterval) {
+    spawnAlien();
+    if (level >= 3 && Math.random() < 0.35) spawnAlien();
+    if (level >= 6 && Math.random() < 0.3) spawnAlien();
+    if (level >= 9 && Math.random() < 0.25) spawnAlien();
+    lastAlienSpawn = now;
+  }
+
+  for (let i = aliens.length - 1; i >= 0; i--) {
+    const a = aliens[i];
+
+    const dx = shipX - a.x;
+    const dy = shipY - a.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist > 0) {
+      a.vx += (dx / dist) * a.speed * 0.05;
+      a.vy += (dy / dist) * a.speed * 0.05;
+    }
+    a.vx *= 0.97;
+    a.vy *= 0.97;
+    const spd = Math.sqrt(a.vx * a.vx + a.vy * a.vy);
+    if (spd > a.speed) {
+      a.vx = (a.vx / spd) * a.speed;
+      a.vy = (a.vy / spd) * a.speed;
+    }
+
+    // Alien-alien separation
+    for (let j = i - 1; j >= 0; j--) {
+      const b = aliens[j];
+      const sdx = a.x - b.x;
+      const sdy = a.y - b.y;
+      const sd = Math.sqrt(sdx * sdx + sdy * sdy);
+      const minDist = a.r + b.r;
+      if (sd < minDist && sd > 0) {
+        const push = (minDist - sd) * 0.3;
+        a.x += (sdx / sd) * push;
+        a.y += (sdy / sd) * push;
+        b.x -= (sdx / sd) * push;
+        b.y -= (sdy / sd) * push;
+      }
+    }
+
+    // Alien-planet separation
+    for (const pl of planets) {
+      if (!pl.el || pl.el.classList.contains('exploding') || pl.el.style.display === 'none') continue;
+      const pdx = a.x - pl.x;
+      const pdy = a.y - pl.y;
+      const pd = Math.sqrt(pdx * pdx + pdy * pdy);
+      const pMin = a.r + pl.r + 5;
+      if (pd < pMin && pd > 0) {
+        a.x += (pdx / pd) * (pMin - pd) * 0.5;
+        a.y += (pdy / pd) * (pMin - pd) * 0.5;
+      }
+    }
+
+    a.x += a.vx;
+    a.y += a.vy;
+
+    const angle = Math.atan2(a.vy, a.vx) * (180 / Math.PI) + 90;
+    a.el.style.transform = `translate(${a.x - 16}px, ${a.y - 16}px) rotate(${angle}deg)`;
+
+    const shipDx = a.x - shipX;
+    const shipDy = a.y - shipY;
+    if (shipDx * shipDx + shipDy * shipDy < (a.r + 14) * (a.r + 14)) {
+      damageShip(12, a.x, a.y);
+      destroyAlien(a, i);
+      continue;
+    }
+
+    if (a.x < -200 || a.x > window.innerWidth + 200 ||
+        a.y < -200 || a.y > window.innerHeight + 200) {
+      a.el.remove();
+      aliens.splice(i, 1);
+    }
+  }
+}
+
+function destroyAlien(alien: Alien, idx: number) {
+  playAlienDestroy();
+  const pts = 50;
+  addScore(pts);
+  showScorePopup(alien.x, alien.y - 20, pts, '#a855f7');
+  spawnExplosion(alien.x, alien.y, '#a855f7', 12);
+  spawnExplosion(alien.x, alien.y, '#e879f9', 6);
+  alien.el.remove();
+  aliens.splice(idx, 1);
+  killCount++;
+}
+
 
 // Forward declarations (replaced in next commits)
-function destroyAlien(_a: Alien, _i: number) {}
 function defeatBoss() {}
 function spawnBoss() {}
