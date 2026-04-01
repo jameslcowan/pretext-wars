@@ -252,3 +252,207 @@ html, body {
   100% { transform: scale(2); opacity: 0; filter: brightness(6); }
 }
 
+/* ── Spaceship Cursor ──────────────────────── */
+#ship {
+  position: fixed;
+  z-index: 100;
+  pointer-events: none;
+  width: 36px;
+  height: 36px;
+  will-change: transform;
+  filter: drop-shadow(0 0 6px rgba(91, 196, 196, 0.8))
+          drop-shadow(0 0 18px rgba(91, 196, 196, 0.35));
+  transition: filter 0.1s ease;
+}
+#ship.firing {
+  filter: drop-shadow(0 0 12px rgba(255, 200, 100, 1))
+          drop-shadow(0 0 30px rgba(255, 200, 100, 0.6));
+}
+#ship.hit {
+  filter: drop-shadow(0 0 16px rgba(255, 50, 50, 1))
+          drop-shadow(0 0 40px rgba(255, 50, 50, 0.8));
+}
+#ship.invulnerable {
+  animation: shipBlink 0.15s ease infinite;
+}
+@keyframes shipBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* ── Projectiles ───────────────────────────── */
+.projectile {
+  position: fixed;
+  background: linear-gradient(to top, transparent, var(--cyan), #fff);
+  border-radius: 2px;
+  z-index: 90;
+  pointer-events: none;
+  box-shadow: 0 0 10px var(--cyan), 0 0 25px rgba(91, 196, 196, 0.5);
+}
+
+/* ── Explosion Particles ───────────────────── */
+.particle {
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 80;
+}
+
+/* ── Shockwave ring ────────────────────────── */
+.shockwave {
+  position: fixed;
+  width: 60px;
+  height: 60px;
+  margin: -30px 0 0 -30px;
+  border: 2px solid;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 85;
+}
+
+/* ── Screen Flash ──────────────────────────── */
+#flash {
+  position: fixed;
+  inset: 0;
+  background: white;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 150;
+  transition: opacity 0.06s ease;
+}
+#flash.active { opacity: 0.08; }
+
+/* ── Damage Vignette ──────────────────────── */
+#dmg-vignette {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 140;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(255, 30, 30, 0.4) 100%);
+}
+#dmg-vignette.active { opacity: 1; }
+
+/* ── Hint ──────────────────────────────────── */
+#hint {
+  position: fixed;
+  bottom: max(1.2rem, env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.5rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--gold-dim);
+  z-index: 50;
+  pointer-events: none;
+  animation: fadeHint 8s ease forwards;
+}
+@keyframes fadeHint {
+  0% { opacity: 0; }
+  15% { opacity: 1; }
+  75% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ── Atmosphere edges ──────────────────────── */
+#stage::before, #stage::after {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 10%;
+  z-index: 30;
+  pointer-events: none;
+}
+#stage::before { left: 0; background: linear-gradient(to right, var(--bg), transparent); }
+#stage::after { right: 0; background: linear-gradient(to left, var(--bg), transparent); }
+
+/* ── HUD ──────────────────────────────────── */
+#hud {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 1.2rem;
+  padding-top: max(0.6rem, env(safe-area-inset-top, 0px));
+  padding-left: max(1.2rem, env(safe-area-inset-left, 0px));
+  padding-right: max(1.2rem, env(safe-area-inset-right, 0px));
+  z-index: 60;
+  pointer-events: none;
+  font-family: var(--font);
+}
+#hud-left, #hud-right {
+  flex: 0 0 120px;
+}
+#hud-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+#hud-right {
+  text-align: right;
+}
+
+#hp-label {
+  font-size: clamp(0.4rem, 1vw, 0.6rem);
+  letter-spacing: 0.4em;
+  color: rgba(212, 203, 184, 0.4);
+  text-transform: uppercase;
+}
+#hp-container {
+  position: relative;
+  width: min(260px, 40vw);
+  height: 18px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(196, 162, 101, 0.2);
+  border-radius: 9px;
+  overflow: hidden;
+}
+#hp-bar {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #5bc4c4, #c4a265, #5bc4c4);
+  border-radius: 9px;
+  transition: width 0.3s ease;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.15);
+}
+#hp-bar.low {
+  background: linear-gradient(90deg, #d93030, #d97757) !important;
+  animation: hpPulse 0.8s ease infinite;
+}
+@keyframes hpPulse {
+  0%, 100% { box-shadow: inset 0 1px 0 rgba(255,255,255,0.15); }
+  50% { box-shadow: inset 0 1px 0 rgba(255,255,255,0.15), 0 0 12px rgba(255, 50, 50, 0.4); }
+}
+#hp-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(0.5rem, 1.1vw, 0.7rem);
+  letter-spacing: 0.15em;
+  color: #fff;
+  text-shadow: 0 0 4px rgba(0,0,0,0.8);
+}
+
+#score-display {
+  font-size: clamp(0.9rem, 2vw, 1.3rem);
+  letter-spacing: 0.15em;
+  color: var(--gold);
+  text-shadow: 0 0 15px var(--gold-glow);
+}
+
+#level-display {
+  font-size: clamp(0.6rem, 1.5vw, 0.9rem);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  text-shadow: 0 0 10px rgba(91, 196, 196, 0.4);
+}
+
