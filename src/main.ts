@@ -1575,3 +1575,200 @@ function defeatBoss() {
   killCount++;
 }
 
+// ── Health Packs ──────────────────────────────
+function spawnHealthPack() {
+  if (gameOver || hp >= 90) return; // don't spawn at near-full HP
+
+  const margin = 80;
+  const x = margin + Math.random() * (window.innerWidth - margin * 2);
+  const y = margin + Math.random() * (window.innerHeight - margin * 2);
+
+  const el = document.createElement('div');
+  el.className = 'health-pack';
+  el.innerHTML = '<div class="health-pack-inner">+</div>';
+  document.body.appendChild(el);
+
+  healthPacks.push({ el, x, y, spawnTime: performance.now() });
+}
+
+function tickHealthPacks() {
+  if (gameOver) return;
+
+  const now = performance.now();
+  if (now - lastHealthPack > healthPackInterval) {
+    spawnHealthPack();
+    lastHealthPack = now;
+  }
+
+  for (let i = healthPacks.length - 1; i >= 0; i--) {
+    const h = healthPacks[i];
+
+    // Float animation
+    const floatY = Math.sin(now * 0.003 + h.x) * 5;
+    h.el.style.transform = `translate(${h.x - 11}px, ${h.y - 11 + floatY}px)`;
+
+    // Expire after 12s
+    if (now - h.spawnTime > 12000) {
+      h.el.style.opacity = '0';
+      h.el.style.transition = 'opacity 0.5s';
+      setTimeout(() => h.el.remove(), 500);
+      healthPacks.splice(i, 1);
+      continue;
+    }
+
+    // Blink when about to expire
+    if (now - h.spawnTime > 9000) {
+      h.el.style.opacity = Math.sin(now * 0.01) > 0 ? '1' : '0.3';
+    }
+
+    // Ship pickup
+    const pickupR = activeBuffs.some(b => b.name === 'Vue') ? 80 : 30;
+    const dx = shipX - h.x;
+    const dy = shipY - h.y;
+    if (dx * dx + dy * dy < pickupR * pickupR) {
+      playPickup();
+      const heal = 30;
+      hp = Math.min(100, hp + heal);
+      showScorePopup(h.x, h.y - 15, heal, '#22aa44');
+      showToast(`HULL +${heal}`, '#22aa44');
+      spawnExplosion(h.x, h.y, '#66ff88', 8);
+      h.el.remove();
+      healthPacks.splice(i, 1);
+    }
+  }
+}
+
+// ── OSS Buff Pickups ──────────────────────────
+function spawnBuffPickup() {
+  if (gameOver) return;
+
+  const buffType = BUFF_TYPES[Math.floor(Math.random() * BUFF_TYPES.length)];
+  const margin = 80;
+  const x = margin + Math.random() * (window.innerWidth - margin * 2);
+  const y = margin + Math.random() * (window.innerHeight - margin * 2);
+
+  const effectLabel = BUFF_EFFECT_LABELS[buffType.effect] || '';
+  const el = document.createElement('div');
+  el.className = 'buff-pickup';
+  el.innerHTML = `<div class="buff-pickup-inner" style="background:${buffType.color}30;border:1px solid ${buffType.color}80;box-shadow:0 0 12px ${buffType.color}80,0 0 25px ${buffType.color}40"><iconify-icon icon="${buffType.icon}" width="18" height="18"></iconify-icon></div><div class="buff-pickup-label">${effectLabel}</div>`;
+  document.body.appendChild(el);
+
+  buffPickups.push({ el, x, y, spawnTime: performance.now(), buffType });
+}
+
+function tickBuffPickups() {
+  if (gameOver) return;
+
+  const now = performance.now();
+  if (now - lastBuffSpawn > buffSpawnInterval) {
+    spawnBuffPickup();
+    lastBuffSpawn = now;
+  }
+
+  for (let i = buffPickups.length - 1; i >= 0; i--) {
+    const b = buffPickups[i];
+
+    const floatY = Math.sin(now * 0.003 + b.x * 0.5) * 4;
+    b.el.style.transform = `translate(${b.x - 14}px, ${b.y - 14 + floatY}px)`;
+
+    // Expire after 15s
+    if (now - b.spawnTime > 15000) {
+      b.el.style.opacity = '0';
+      b.el.style.transition = 'opacity 0.5s';
+      setTimeout(() => b.el.remove(), 500);
+      buffPickups.splice(i, 1);
+      continue;
+    }
+
+    if (now - b.spawnTime > 11000) {
+      b.el.style.opacity = Math.sin(now * 0.01) > 0 ? '1' : '0.3';
+    }
+
+    // Ship pickup
+    const bPickupR = activeBuffs.some(b2 => b2.name === 'Vue') ? 80 : 30;
+    const dx = shipX - b.x;
+    const dy = shipY - b.y;
+    if (dx * dx + dy * dy < bPickupR * bPickupR) {
+      playPickup();
+      activateBuff(b.buffType);
+      spawnExplosion(b.x, b.y, b.buffType.color, 8);
+      showScorePopup(b.x, b.y - 15, 0, b.buffType.color);
+      b.el.remove();
+      buffPickups.splice(i, 1);
+    }
+  }
+}
+
+const BUFF_EFFECT_LABELS: Record<string, string> = {
+  fireRate: 'fire rate x2',
+  shield: 'absorbs 1 hit',
+  damage: 'damage x2',
+  speed: 'ship speed x1.5',
+  invulnerable: 'invulnerable',
+  random: 'random buff',
+  multishot: 'triple shot',
+  regen: 'slow heal',
+  magnet: 'pickup magnet',
+  rewind: 'restore 25 HP',
+};
+
+function activateBuff(buffType: typeof BUFF_TYPES[number]) {
+  // JavaScript gives a random OTHER buff
+  if (buffType.effect === 'random') {
+    const others = BUFF_TYPES.filter(b => b.effect !== 'random');
+    const pick = others[Math.floor(Math.random() * others.length)];
+    showToast(`JavaScript => ${pick.name}!`, '#f7df1e');
+    activateBuff(pick);
+    return;
+  }
+
+  // Git rewind is instant (restore HP)
+  if (buffType.effect === 'rewind') {
+    const heal = 25;
+    hp = Math.min(100, hp + heal);
+    showToast(`Git Rewind -- HULL +${heal}`, '#f05032');
+    spawnExplosion(shipX, shipY, '#f05032', 10);
+    return;
+  }
+
+  // Remove existing buff of same type
+  const existing = activeBuffs.findIndex(b => b.name === buffType.name);
+  if (existing >= 0) {
+    activeBuffs[existing].badgeEl.remove();
+    activeBuffs.splice(existing, 1);
+  }
+
+  const effectLabel = BUFF_EFFECT_LABELS[buffType.effect] || '';
+  const badge = document.createElement('div');
+  badge.className = 'buff-badge';
+  badge.innerHTML = `<iconify-icon icon="${buffType.icon}" width="14" height="14"></iconify-icon> ${buffType.name}<span class="buff-badge-effect">${effectLabel}</span>`;
+  badge.style.color = buffType.color;
+  badge.style.borderColor = buffType.color;
+  badge.style.boxShadow = `0 0 8px ${buffType.color}40`;
+  buffIndicator.appendChild(badge);
+
+  showToast(`${buffType.name} -- ${effectLabel}`, buffType.color);
+
+  // Rust invulnerability
+  if (buffType.effect === 'invulnerable') {
+    shipInvulnerable = performance.now() + buffType.duration;
+  }
+
+  const until = performance.now() + buffType.duration;
+  activeBuffs.push({ name: buffType.name, until, badgeEl: badge });
+}
+
+function tickBuffs() {
+  const now = performance.now();
+  for (let i = activeBuffs.length - 1; i >= 0; i--) {
+    // Kubernetes regen: heal 1 HP every ~30 frames
+    if (activeBuffs[i].name === 'Kubernetes' && Math.random() < 0.033 && hp < 100) {
+      hp = Math.min(100, hp + 1);
+    }
+    if (now >= activeBuffs[i].until) {
+      activeBuffs[i].badgeEl.remove();
+      activeBuffs.splice(i, 1);
+    }
+  }
+}
+
