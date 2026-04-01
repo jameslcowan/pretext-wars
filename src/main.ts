@@ -548,3 +548,414 @@ function showScorePopup(x: number, y: number, pts: number, color: string) {
   setTimeout(() => el.remove(), 950);
 }
 
+// ── Projectiles ───────────────────────────────
+function getEffectiveFireRate(): number {
+  let rate = fireRate;
+  if (activeBuffs.some(b => b.name === 'TypeScript')) rate *= 0.5;
+  return rate;
+}
+
+function getEffectiveDamage(): number {
+  let dmg = 1;
+  if (activeBuffs.some(b => b.name === 'Docker')) dmg = 2;
+  return dmg;
+}
+
+function fireProjectile() {
+  playShoot();
+  ship.classList.add('firing');
+  setTimeout(() => ship.classList.remove('firing'), 60);
+
+  const angleRad = (shipAngle - 90) * (Math.PI / 180);
+  const speed = projSpeed;
+  const hasMultishot = activeBuffs.some(b => b.name === 'Python');
+
+  const angles = hasMultishot
+    ? [angleRad - 0.15, angleRad, angleRad + 0.15]
+    : [angleRad];
+
+  for (const a of angles) {
+    const el = document.createElement('div');
+    el.className = 'projectile';
+    el.style.width = `${projW}px`;
+    el.style.height = `${projH}px`;
+    el.style.transform = `rotate(${shipAngle}deg)`;
+    document.body.appendChild(el);
+
+    projectiles.push({
+      el,
+      x: shipX + Math.cos(a) * 20,
+      y: shipY + Math.sin(a) * 20,
+      vx: Math.cos(a) * speed,
+      vy: Math.sin(a) * speed,
+      life: 60,
+      damage: getEffectiveDamage(),
+    });
+  }
+}
+
+function tickProjectiles() {
+  if (firing && !draggingPlanet && !gameOver) {
+    const now = performance.now();
+    if (now - lastFireTime >= getEffectiveFireRate()) {
+      fireProjectile();
+      lastFireTime = now;
+    }
+  }
+
+  for (let i = projectiles.length - 1; i >= 0; i--) {
+    const p = projectiles[i];
+    p.x += p.vx;
+    p.y += p.vy;
+    p.life--;
+    p.el.style.left = `${p.x - projW / 2}px`;
+    p.el.style.top = `${p.y - projH / 2}px`;
+
+    if (p.life <= 0 || p.x < -50 || p.x > window.innerWidth + 50 || p.y < -50 || p.y > window.innerHeight + 50) {
+      p.el.remove();
+      projectiles.splice(i, 1);
+      continue;
+    }
+
+    // Planet hits
+    let hitSomething = false;
+    for (let pi = 0; pi < planets.length; pi++) {
+      const planet = planets[pi];
+      if (!planet.el || planet.el.classList.contains('exploding') || planet.el.style.display === 'none') continue;
+      const dx = p.x - planet.x;
+      const dy = p.y - planet.y;
+      if (dx * dx + dy * dy < planet.r * planet.r) {
+        planetHp[pi] -= p.damage;
+        spawnExplosion(p.x, p.y, '#fff', 3);
+        if (planetHp[pi] <= 0) {
+          explodePlanet(planet, pi);
+        } else {
+          // Flash on hit
+          planet.el.style.filter = 'brightness(1.8)';
+          setTimeout(() => { if (planet.el) planet.el.style.filter = ''; }, 80);
+          syncPlanetEl(planet, pi);
+        }
+        p.el.remove();
+        projectiles.splice(i, 1);
+        hitSomething = true;
+        break;
+      }
+    }
+    if (hitSomething) continue;
+
+    // Boss hit
+    if (boss && boss.active) {
+      const dx = p.x - boss.x;
+      const dy = p.y - boss.y;
+      if (dx * dx + dy * dy < boss.r * boss.r) {
+        boss.hp -= p.damage;
+        spawnExplosion(p.x, p.y, '#ff6644', 4);
+        if (boss.hp <= 0) {
+          defeatBoss();
+        } else {
+          bossHpBar.style.width = `${(boss.hp / boss.maxHp) * 100}%`;
+          boss.el.style.filter = 'brightness(2)';
+          setTimeout(() => { if (boss?.el) boss.el.style.filter = ''; }, 60);
+        }
+        p.el.remove();
+        projectiles.splice(i, 1);
+        continue;
+      }
+    }
+
+    // Alien hits
+    let hitAlien = false;
+    for (let ai = aliens.length - 1; ai >= 0; ai--) {
+      const a = aliens[ai];
+      const adx = p.x - a.x;
+      const ady = p.y - a.y;
+      if (adx * adx + ady * ady < (a.r + 4) * (a.r + 4)) {
+        a.hp -= p.damage;
+        if (a.hp <= 0) {
+          destroyAlien(a, ai);
+        } else {
+          a.el.style.filter = 'drop-shadow(0 0 15px rgba(255, 255, 255, 0.9))';
+          setTimeout(() => {
+            if (a.el.parentNode) a.el.style.filter = 'drop-shadow(0 0 8px rgba(168, 85, 247, 0.6))';
+          }, 80);
+        }
+        p.el.remove();
+        projectiles.splice(i, 1);
+        hitAlien = true;
+        break;
+      }
+    }
+    if (hitAlien) continue;
+
+    // Drop cap hit
+    if (dropCapEl && !dropCapDestroyed) {
+      const dcRect = dropCapEl.getBoundingClientRect();
+      if (p.x >= dcRect.left - 4 && p.x <= dcRect.right + 4 &&
+          p.y >= dcRect.top - 4 && p.y <= dcRect.bottom + 4) {
+        destroyDropCap(p.vx, p.vy);
+        p.el.remove();
+        projectiles.splice(i, 1);
+        continue;
+      }
+    }
+
+    // Character hits
+    checkCharHit(p, i);
+  }
+}
+
+function checkCharHit(proj: Projectile, projIdx: number) {
+  for (let li = 0; li < charEls.length; li++) {
+    for (let ci = 0; ci < charEls[li].length; ci++) {
+      const ch = charEls[li][ci];
+      if (ch.classList.contains('destroyed')) continue;
+      const rect = ch.getBoundingClientRect();
+      if (proj.x >= rect.left - 4 && proj.x <= rect.right + 4 &&
+          proj.y >= rect.top - 4 && proj.y <= rect.bottom + 4) {
+        destroyChar(ch, proj.vx, proj.vy);
+        proj.el.remove();
+        projectiles.splice(projIdx, 1);
+        return;
+      }
+    }
+  }
+}
+
+function destroyChar(el: HTMLElement, pvx: number, pvy: number) {
+  el.classList.add('destroyed');
+  playCharDestroy();
+
+  // Track by absolute text offset
+  const offset = el.dataset.offset;
+  if (offset) destroyedTextOffsets.add(Number(offset));
+
+  const pts = 10;
+  addScore(pts);
+
+  const rect = el.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+
+  showScorePopup(cx, cy - 10, pts, '#c4a265');
+  spawnExplosion(cx, cy, '#c4a265', 5);
+  killCount++;
+
+  destroyedChars.push({
+    el,
+    x: rect.left,
+    y: rect.top,
+    vx: pvx * 0.4 + (Math.random() - 0.5) * 8,
+    vy: pvy * 0.4 + (Math.random() - 0.5) * 8 - 2,
+    rot: 0,
+    rotV: (Math.random() - 0.5) * 20,
+    opacity: 1,
+    scale: 1,
+  });
+}
+
+function destroyDropCap(pvx: number, pvy: number) {
+  if (!dropCapEl || dropCapDestroyed) return;
+  dropCapDestroyed = true;
+  destroyedTextOffsets.add(0); // offset 0 = first character
+  playCharDestroy();
+
+  const pts = 50;
+  addScore(pts);
+  killCount++;
+
+  const rect = dropCapEl.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+
+  showScorePopup(cx, cy - 15, pts, '#c4a265');
+  spawnExplosion(cx, cy, '#c4a265', 12);
+  spawnShockwave(cx, cy, '#c4a265');
+
+  // Animate the drop cap flying away
+  destroyedChars.push({
+    el: dropCapEl,
+    x: rect.left, y: rect.top,
+    vx: pvx * 0.3 + (Math.random() - 0.5) * 6,
+    vy: pvy * 0.3 - 3,
+    rot: 0, rotV: (Math.random() - 0.5) * 15,
+    opacity: 1, scale: 1,
+  });
+}
+
+function tickDestroyedChars() {
+  for (let i = destroyedChars.length - 1; i >= 0; i--) {
+    const d = destroyedChars[i];
+    d.x += d.vx;
+    d.y += d.vy;
+    d.vy += 0.2;
+    d.vx *= 0.99;
+    d.rot += d.rotV;
+    d.opacity -= 0.015;
+    d.scale *= 0.993;
+
+    if (d.opacity <= 0) {
+      d.el.style.opacity = '0';
+      destroyedChars.splice(i, 1);
+      continue;
+    }
+
+    d.el.style.position = 'fixed';
+    d.el.style.left = `${d.x}px`;
+    d.el.style.top = `${d.y}px`;
+    d.el.style.transform = `rotate(${d.rot}deg) scale(${d.scale})`;
+    d.el.style.opacity = `${d.opacity}`;
+    d.el.style.color = '#c4a265';
+  }
+}
+
+// ── Explosions ────────────────────────────────
+function spawnExplosion(x: number, y: number, color: string, count?: number) {
+  const n = count ?? (isMobile ? 10 : 16);
+  for (let i = 0; i < n; i++) {
+    const el = document.createElement('div');
+    el.className = 'particle';
+    const size = Math.random() * 5 + 2;
+    el.style.width = `${size}px`;
+    el.style.height = `${size}px`;
+    el.style.background = color;
+    el.style.left = `${x}px`;
+    el.style.top = `${y}px`;
+    el.style.boxShadow = `0 0 ${size * 3}px ${color}`;
+    document.body.appendChild(el);
+
+    const angle = (Math.PI * 2 * i) / n + Math.random() * 0.4;
+    const speed = Math.random() * 6 + 3;
+
+    gsap.to(el, {
+      x: Math.cos(angle) * speed * 35,
+      y: Math.sin(angle) * speed * 35,
+      opacity: 0,
+      scale: 0,
+      duration: 0.5 + Math.random() * 0.5,
+      ease: 'power2.out',
+      onComplete: () => el.remove(),
+    });
+  }
+}
+
+function spawnShockwave(x: number, y: number, color: string) {
+  const ring = document.createElement('div');
+  ring.className = 'shockwave';
+  ring.style.left = `${x}px`;
+  ring.style.top = `${y}px`;
+  ring.style.borderColor = color;
+  document.body.appendChild(ring);
+
+  gsap.fromTo(ring,
+    { scale: 0.2, opacity: 0.8 },
+    { scale: 3, opacity: 0, duration: 0.6, ease: 'power2.out', onComplete: () => ring.remove() },
+  );
+}
+
+// ── Planet Explosions ─────────────────────────
+function getPlanetColor(planet: Orb): string {
+  return planet.className.includes('jupiter') ? '#dab07a'
+    : planet.className.includes('saturn') ? '#f0b840'
+    : planet.className.includes('earth') ? '#6bb5e0'
+    : planet.className.includes('mars') ? '#d97757'
+    : '#5bc4c4';
+}
+
+function explodePlanet(planet: Orb, idx: number) {
+  if (!planet.el) return;
+  playPlanetExplode();
+
+  const pts = Math.round(planet.r * 2);
+  addScore(pts);
+  const color = getPlanetColor(planet);
+  showScorePopup(planet.x, planet.y - planet.r - 10, pts, color);
+  killCount++;
+
+  spawnExplosion(planet.x, planet.y, color, 24);
+  spawnExplosion(planet.x, planet.y, '#fff', 10);
+  spawnShockwave(planet.x, planet.y, color);
+
+  flash.classList.add('active');
+  setTimeout(() => flash.classList.remove('active'), 120);
+
+  stage.style.transform = `translate(${(Math.random() - 0.5) * 10}px, ${(Math.random() - 0.5) * 10}px)`;
+  setTimeout(() => { stage.style.transform = ''; }, 120);
+
+  planet.el.classList.add('exploding');
+  if (planetHpEls[idx]) planetHpEls[idx].style.opacity = '0';
+
+  setTimeout(() => {
+    if (planet.el) planet.el.style.display = 'none';
+  }, 500);
+
+  setTimeout(() => {
+    if (!planet.el) return;
+    playPlanetRespawn();
+
+    const margin = planet.r + 50;
+    planet.x = margin + Math.random() * (window.innerWidth - margin * 2);
+    planet.y = margin + Math.random() * (window.innerHeight - margin * 2);
+    planet.vx = (Math.random() - 0.5) * 0.4;
+    planet.vy = (Math.random() - 0.5) * 0.4;
+
+    // Reset HP
+    planetHp[idx] = planetMaxHp[idx];
+
+    syncPlanetEl(planet, idx);
+
+    planet.el.style.display = '';
+    planet.el.classList.remove('exploding');
+    planet.el.style.opacity = '0';
+    planet.el.style.transform = `translate(${planet.x - planet.r}px, ${planet.y - planet.r}px) scale(0)`;
+
+    gsap.to(planet.el, {
+      opacity: 1,
+      scale: 1,
+      duration: 0.8,
+      ease: 'back.out(1.5)',
+      onUpdate: () => syncPlanetEl(planet, idx),
+    });
+  }, 4000);
+}
+
+// ── Planet Physics ────────────────────────────
+function tickPlanets() {
+  for (let i = 0; i < planets.length; i++) {
+    const p = planets[i];
+    if (p === draggingPlanet || !p.el || p.el.classList.contains('exploding') || p.el.style.display === 'none') continue;
+
+    p.x += p.vx;
+    p.y += p.vy;
+
+    // Planet-planet separation
+    for (let j = i + 1; j < planets.length; j++) {
+      const q = planets[j];
+      if (!q.el || q.el.classList.contains('exploding') || q.el.style.display === 'none') continue;
+      const dx = p.x - q.x;
+      const dy = p.y - q.y;
+      const d = Math.sqrt(dx * dx + dy * dy);
+      const minDist = p.r + q.r + 10;
+      if (d < minDist && d > 0) {
+        const push = (minDist - d) * 0.15;
+        p.x += (dx / d) * push;
+        p.y += (dy / d) * push;
+        q.x -= (dx / d) * push;
+        q.y -= (dy / d) * push;
+      }
+    }
+
+    const margin = p.r;
+    if (p.x - margin < 0) { p.vx = Math.abs(p.vx); p.x = margin; }
+    if (p.x + margin > window.innerWidth) { p.vx = -Math.abs(p.vx); p.x = window.innerWidth - margin; }
+    if (p.y - margin < 0) { p.vy = Math.abs(p.vy); p.y = margin; }
+    if (p.y + margin > window.innerHeight) { p.vy = -Math.abs(p.vy); p.y = window.innerHeight - margin; }
+
+    syncPlanetEl(p, i);
+  }
+}
+
+
+// Forward declarations (replaced in next commits)
+function addScore(_pts: number, _x?: number, _y?: number) {}
+function destroyAlien(_a: Alien, _i: number) {}
+function defeatBoss() {}
