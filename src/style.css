@@ -944,3 +944,307 @@ html, body {
   100% { opacity: 0; transform: translateY(-8px); }
 }
 
+/* ── Edge Warning Arrows ─────────────────────── */
+#edge-warnings {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 55;
+}
+.edge-warning {
+  position: fixed;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  filter: drop-shadow(0 0 6px rgba(168, 85, 247, 0.8));
+  animation: edgePulse 0.6s ease infinite;
+}
+.edge-warning--left {
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-right: 12px solid #a855f7;
+  left: 6px;
+}
+.edge-warning--right {
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-left: 12px solid #a855f7;
+  right: 6px;
+}
+.edge-warning--top {
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 12px solid #a855f7;
+  top: 6px;
+}
+.edge-warning--bottom {
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 12px solid #a855f7;
+  bottom: 6px;
+}
+.edge-warning--boss {
+  filter: drop-shadow(0 0 8px rgba(217, 119, 87, 0.9));
+}
+.edge-warning--boss.edge-warning--left { border-right-color: #d97757; }
+.edge-warning--boss.edge-warning--right { border-left-color: #d97757; }
+.edge-warning--boss.edge-warning--top { border-bottom-color: #d97757; }
+.edge-warning--boss.edge-warning--bottom { border-top-color: #d97757; }
+@keyframes edgePulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* ── Boss Entrance Banner ────────────────────── */
+.boss-banner {
+  position: fixed;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font);
+  font-size: clamp(0.6rem, 2.5vw, 1rem);
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  color: var(--ember);
+  text-shadow: 0 0 30px rgba(217, 119, 87, 0.7), 0 0 60px rgba(217, 119, 87, 0.3);
+  z-index: 97;
+  pointer-events: none;
+  animation: bossBannerAnim 2s ease-out forwards;
+}
+@keyframes bossBannerAnim {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(2); letter-spacing: 1em; }
+  30% { opacity: 1; transform: translate(-50%, -50%) scale(1); letter-spacing: 0.5em; }
+  80% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -55%) scale(0.95); }
+}
+
+/* ── Enhanced Level-Up Flash ─────────────────── */
+.level-up-sub {
+  font-size: clamp(0.35rem, 1.2vw, 0.5rem);
+  letter-spacing: 0.3em;
+  color: var(--gold);
+  text-shadow: 0 0 15px var(--gold-glow);
+  margin-top: 0.3rem;
+}
+
+/* ── Enhanced Buff Badge ─────────────────────── */
+.buff-badge-effect {
+  font-size: 0.25rem;
+  opacity: 0.6;
+  margin-left: 4px;
+  letter-spacing: 0.1em;
+}
+
+/* ── Planet HP Bar ────────────────────────────── */
+.planet-hp-bar-wrap {
+  position: absolute;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 21;
+  transition: opacity 0.3s ease;
+}
+.planet-hp-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #d93030, #ff8844, #66ff88);
+  border-radius: 2px;
+  transition: width 0.2s ease;
+}
+
+/* ── Mobile Fire Button ─────────────────────── */
+#mobile-fire-btn {
+  display: none;
+  position: fixed;
+  bottom: max(2rem, env(safe-area-inset-bottom, 0px));
+  right: max(1.5rem, env(safe-area-inset-right, 0px));
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(91, 196, 196, 0.07);
+  border: 1.5px solid rgba(91, 196, 196, 0.2);
+  z-index: 110;
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+  backdrop-filter: blur(2px);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+#mobile-fire-btn::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(91, 196, 196, 0.25);
+  transform: translate(-50%, -50%);
+  transition: background 0.1s ease;
+}
+#mobile-fire-btn.active {
+  background: rgba(91, 196, 196, 0.15);
+  border-color: rgba(91, 196, 196, 0.5);
+}
+#mobile-fire-btn.active::after {
+  background: rgba(91, 196, 196, 0.5);
+}
+
+/* ── Mobile Move Zone ──────────────────────── */
+#mobile-move-zone {
+  display: none;
+  position: fixed;
+  bottom: max(2rem, env(safe-area-inset-bottom, 0px));
+  left: max(1.5rem, env(safe-area-inset-left, 0px));
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: rgba(196, 162, 101, 0.05);
+  border: 1.5px solid rgba(196, 162, 101, 0.15);
+  z-index: 110;
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+  backdrop-filter: blur(2px);
+}
+#mobile-move-zone .move-knob {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(196, 162, 101, 0.2);
+  border: 1px solid rgba(196, 162, 101, 0.3);
+  transform: translate(-50%, -50%);
+  transition: background 0.1s ease;
+  pointer-events: none;
+}
+
+/* ── Mobile Reticle ──────────────────────────── */
+#mobile-reticle {
+  display: none;
+  position: fixed;
+  width: 24px;
+  height: 24px;
+  z-index: 99;
+  pointer-events: none;
+  will-change: transform;
+  filter: drop-shadow(0 0 4px rgba(91, 196, 196, 0.6));
+}
+
+/* ── Attribution ─────────────────────────────── */
+#attribution {
+  position: fixed;
+  bottom: max(2.5rem, calc(env(safe-area-inset-bottom, 0px) + 1.5rem));
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font);
+  font-size: clamp(0.45rem, 1vw, 0.6rem);
+  letter-spacing: 0.2em;
+  color: rgba(212, 203, 184, 0.25);
+  z-index: 50;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* ── Buff Pickup Label ───────────────────────── */
+.buff-pickup-label {
+  position: absolute;
+  bottom: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font);
+  font-size: 7px;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.7);
+  text-shadow: 0 0 4px rgba(0,0,0,0.8);
+  pointer-events: none;
+}
+
+/* ── Mobile Pause Button ─────────────────────── */
+#pause-btn {
+  display: none; /* shown on mobile only */
+  position: fixed;
+  top: max(0.5rem, env(safe-area-inset-top, 0px));
+  right: max(0.5rem, env(safe-area-inset-right, 0px));
+  z-index: 70;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(196, 162, 101, 0.25);
+  border-radius: 6px;
+  color: var(--gold-dim);
+  font-size: 12px;
+  padding: 6px 10px;
+  letter-spacing: 2px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  pointer-events: auto;
+}
+#pause-btn:active {
+  background: rgba(196, 162, 101, 0.15);
+}
+
+/* ── Desktop / Mobile content toggles ───────── */
+.ob-sub-mobile, .pause-mobile { display: none; }
+.ob-sub-desktop, .pause-desktop { display: inline; }
+
+/* ── Mobile ────────────────────────────────── */
+@media (max-width: 600px) {
+  html, body { cursor: auto; }
+  #ship { width: 28px; height: 28px; }
+  #hint { font-size: 0.4rem; bottom: max(0.6rem, env(safe-area-inset-bottom, 0px)); }
+  #stage::before, #stage::after { width: 5%; }
+  #hud {
+    padding: 0.4rem 0.6rem;
+    padding-top: max(0.4rem, env(safe-area-inset-top, 0px));
+    padding-left: max(0.6rem, env(safe-area-inset-left, 0px));
+    padding-right: max(2.8rem, env(safe-area-inset-right, 0px)); /* room for pause btn */
+  }
+  #hp-container { width: min(160px, 50vw); height: 14px; }
+  #score-display { font-size: 0.6rem; }
+  #level-display { font-size: 0.4rem; }
+  #hud-left, #hud-right { flex: 0 0 50px; }
+  .boss-window { width: 70px; height: 60px; }
+
+  /* Show mobile pause button, reticle, and controls */
+  #pause-btn { display: block; }
+  #mobile-reticle { display: block; }
+  #mobile-fire-btn { display: block; }
+  #mobile-move-zone { display: flex; }
+
+  /* Mobile-specific content */
+  .ob-sub-mobile, .pause-mobile { display: inline; }
+  .ob-sub-desktop, .pause-desktop { display: none; }
+
+  /* Onboarding compact */
+  .ob-title { margin-bottom: 1.5rem; }
+  .ob-items { gap: clamp(1rem, 4vw, 1.5rem); margin-bottom: 1.5rem; }
+  .ob-item { min-width: 65px; }
+  .ob-icon { font-size: clamp(0.8rem, 2.5vw, 1.2rem); }
+
+  /* Toast below HUD */
+  #toast-container { top: 2.8rem; }
+
+  /* Buff indicator compact */
+  #buff-indicator { top: 2.2rem; }
+  .buff-badge { font-size: 0.28rem; padding: 1px 5px; }
+  .buff-badge-effect { display: none; }
+
+  /* Pause overlay compact */
+  .pause-legend { gap: 0.4rem; }
+  .pause-legend-item { font-size: 0.25rem; }
+
+  /* Level-up sub smaller */
+  .level-up-sub { font-size: 0.3rem; }
+
+  /* Buff pickup label smaller */
+  .buff-pickup-label { font-size: 6px; bottom: -12px; }
+
+  /* Boss banner smaller */
+  .boss-banner { font-size: clamp(0.45rem, 2vw, 0.7rem); }
+
+  /* Game over safe area */
+  #game-over .go-content {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
