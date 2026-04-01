@@ -60,6 +60,8 @@ let pointerY = window.innerHeight * 0.85;
 let shipX = pointerX;
 let shipY = pointerY;
 let shipSpeed = INITIAL_SHIP_SPEED;
+let shipKnockVX = 0;
+let shipKnockVY = 0;
 let shipAngle = -90;
 let draggingPlanet: Orb | null = null;
 let dragOffsetX = 0;
@@ -502,6 +504,14 @@ function updateShip() {
     while (diff < -180) diff += 360;
     shipAngle += diff * 0.15;
   }
+
+  // Apply and decay knockback
+  shipX += shipKnockVX;
+  shipY += shipKnockVY;
+  shipKnockVX *= 0.92;
+  shipKnockVY *= 0.92;
+  if (Math.abs(shipKnockVX) < 0.1) shipKnockVX = 0;
+  if (Math.abs(shipKnockVY) < 0.1) shipKnockVY = 0;
 
   // Clamp ship to viewport bounds
   const margin = 18;
@@ -1346,6 +1356,11 @@ function restartGame() {
   destroyedTextOffsets.clear();
   cachedLineTexts = [];
   dropCapDestroyed = false;
+  shipKnockVX = 0;
+  shipKnockVY = 0;
+  for (const m of meteorLetters) m.el.remove();
+  meteorLetters.length = 0;
+  lastMeteorShower = performance.now();
   for (let i = 0; i < planets.length; i++) {
     planetHp[i] = planetMaxHp[i];
   }
@@ -1893,6 +1908,90 @@ function tickShipCollisions() {
   }
 }
 
+// ── Pretext Meteor Shower ────────────────────
+interface MeteorLetter {
+  el: HTMLElement;
+  x: number; y: number;
+  vx: number; vy: number;
+  life: number;
+}
+const meteorLetters: MeteorLetter[] = [];
+let lastMeteorShower = 0;
+const METEOR_INTERVAL = 45000; // every 45s
+const METEOR_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+function startMeteorShower() {
+  showToast('PRETEXT METEOR SHOWER', '#c4a265');
+  const count = isMobile ? 12 : 20;
+  for (let i = 0; i < count; i++) {
+    setTimeout(() => spawnMeteorLetter(), i * 120);
+  }
+}
+
+function spawnMeteorLetter() {
+  const ch = METEOR_CHARS[Math.floor(Math.random() * METEOR_CHARS.length)];
+  const el = document.createElement('div');
+  el.textContent = ch;
+  el.style.cssText = `position:fixed;z-index:95;pointer-events:none;font-family:var(--font);font-size:${isMobile ? 18 : 28}px;color:var(--gold);text-shadow:0 0 8px rgba(196,162,101,0.6),0 0 20px rgba(196,162,101,0.3);will-change:transform;opacity:0.85;`;
+  stage.appendChild(el);
+
+  // Spawn from random edge, aim toward ship with spread
+  const edge = Math.floor(Math.random() * 3); // top, left, right
+  let x: number, y: number;
+  if (edge === 0) { x = Math.random() * window.innerWidth; y = -20; }
+  else if (edge === 1) { x = -20; y = Math.random() * window.innerHeight * 0.6; }
+  else { x = window.innerWidth + 20; y = Math.random() * window.innerHeight * 0.6; }
+
+  const angle = Math.atan2(shipY - y, shipX - x) + (Math.random() - 0.5) * 0.6;
+  const speed = 3 + Math.random() * 3;
+
+  meteorLetters.push({
+    el, x, y,
+    vx: Math.cos(angle) * speed,
+    vy: Math.sin(angle) * speed,
+    life: 180,
+  });
+}
+
+function tickMeteorShower() {
+  const now = performance.now();
+  if (now - lastMeteorShower > METEOR_INTERVAL && now - gameStartTime > 20000) {
+    lastMeteorShower = now;
+    startMeteorShower();
+  }
+
+  for (let i = meteorLetters.length - 1; i >= 0; i--) {
+    const m = meteorLetters[i];
+    m.x += m.vx;
+    m.y += m.vy;
+    m.life--;
+
+    // Check collision with ship
+    const dx = m.x - shipX;
+    const dy = m.y - shipY;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < 25) {
+      // Knockback in the direction the meteor was traveling
+      shipKnockVX += m.vx * 1.2;
+      shipKnockVY += m.vy * 1.2;
+      // Burst the letter
+      m.life = 0;
+    }
+
+    // Remove if dead or off screen
+    if (m.life <= 0 || m.x < -50 || m.x > window.innerWidth + 50 || m.y > window.innerHeight + 50) {
+      gsap.to(m.el, { opacity: 0, scale: 1.5, duration: 0.2, onComplete: () => m.el.remove() });
+      meteorLetters.splice(i, 1);
+      continue;
+    }
+
+    // Fade near end of life
+    const fade = m.life < 30 ? m.life / 30 : 1;
+    m.el.style.transform = `translate(${m.x}px, ${m.y}px)`;
+    m.el.style.opacity = String(0.85 * fade);
+  }
+}
+
 // ── Main Loop ─────────────────────────────────
 function tick() {
   const t = performance.now() / 1000;
@@ -1911,6 +2010,7 @@ function tick() {
     tickBuffPickups();
     tickBuffs();
     tickEdgeWarnings();
+    tickMeteorShower();
     reflow();
     tickKinetic(t);
     updateHUD();
