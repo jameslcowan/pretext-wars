@@ -294,6 +294,10 @@ function syncPlanetEl(p: Orb, idx?: number) {
 function onPointerDown(e: PointerEvent) {
   if (paused) return;
   if (!onboardingDismissed) { dismissOnboarding(); return; }
+
+  // On mobile, movement and firing are handled by virtual controls only
+  if (isMobile) return;
+
   pointerX = e.clientX;
   pointerY = e.clientY;
 
@@ -319,6 +323,7 @@ function onPointerDown(e: PointerEvent) {
 }
 
 function onPointerMove(e: PointerEvent) {
+  if (isMobile) return;
   pointerX = e.clientX;
   pointerY = e.clientY;
   if (paused) return;
@@ -331,7 +336,7 @@ function onPointerMove(e: PointerEvent) {
 
 function onPointerUp() {
   draggingPlanet = null;
-  firing = false;
+  if (!isMobile) firing = false;
 }
 
 stage.addEventListener('pointerdown', onPointerDown);
