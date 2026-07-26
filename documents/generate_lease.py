@@ -269,7 +269,7 @@ story.append(KeepTogether([
     Paragraph("<b>LANDLORD</b> — Dunn Family Cemetery Inc.", S["sig"]),
     Spacer(1, 22),
     Paragraph("By: _________________________________________", S["sig"]),
-    Paragraph("Printed Name: _______________________________", S["sig"]),
+    Paragraph("Printed Name: Ray E. Dunn", S["sig"]),
     Paragraph("Title: ______________________________________", S["sig"]),
     Paragraph("Date: _______________________", S["sig"]),
     Spacer(1, 18),
