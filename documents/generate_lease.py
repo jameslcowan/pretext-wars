@@ -86,7 +86,7 @@ summary_data = [
     ["Tenant:", "James Cowan Jr."],
     ["Premises:", "2605 Cascade Falls Dr, Austin, TX 78738 (Travis County)"],
     ["Legal Description:", "Lot 17, Block A, Lake Pointe Sec. 3, Phase 1"],
-    ["Monthly Rent:", "US $750.00 (utilities not included)"],
+    ["Monthly Rent:", "US $3,500.00 (utilities not included)"],
     ["Security Deposit:", "None"],
     ["Term:", "Twenty-four (24) months, beginning on the Commencement Date below"],
 ]
@@ -132,8 +132,8 @@ ARTICLES = [
         'month\'s written notice under Section 91.001 of the Texas Property Code.',
     ]),
     ("Article 3 – Rent", [
-        'The Tenant shall pay the Landlord rent of Seven Hundred Fifty and 00/100 Dollars '
-        '(US $750.00) per month, due and payable in advance on or before the first (1st) day of '
+        'The Tenant shall pay the Landlord rent of Three Thousand Five Hundred and 00/100 '
+        'Dollars (US $3,500.00) per month, due and payable in advance on or before the first (1st) day of '
         'each calendar month, without demand or offset. Rent shall be paid by check or electronic '
         'transfer to the Landlord at the address or account the Landlord designates in writing. '
         'If the term begins or ends on a day other than the first day of a month, rent for that '
