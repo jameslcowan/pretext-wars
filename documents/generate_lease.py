@@ -87,7 +87,7 @@ summary_data = [
     ["Premises:", "2605 Cascade Falls Dr, Austin, TX 78738 (Travis County)"],
     ["Legal Description:", "Lot 17, Block A, Lake Pointe Sec. 3, Phase 1"],
     ["Monthly Rent:", "US $3,500.00 (utilities not included)"],
-    ["Security Deposit:", "None"],
+    ["Security Deposit:", "US $3,500.00"],
     ["Term:", "Twenty-four (24) months, beginning on the Commencement Date below"],
 ]
 t = Table([[Paragraph(f"<b>{k}</b>", S["summary"]), Paragraph(v, S["summary"])]
@@ -147,10 +147,15 @@ ARTICLES = [
         'shall pay all utility charges for the Premises promptly when due.',
     ]),
     ("Article 5 – Security Deposit", [
-        'No security deposit is required under this Lease. If the Parties later agree in a signed '
-        'writing that a deposit will be collected, that writing shall state the amount, and the '
-        'deposit shall be held and returned in accordance with Chapter 92, Subchapter C of the '
-        'Texas Property Code.',
+        'On or before the Commencement Date, the Tenant shall pay the Landlord a security '
+        'deposit of Three Thousand Five Hundred and 00/100 Dollars (US $3,500.00), to be held '
+        'as security for the Tenant\'s performance of this Lease. The deposit is not an advance '
+        'payment of rent, and the Tenant may not apply it to any month\'s rent. The Landlord '
+        'shall hold and return the deposit in accordance with Chapter 92, Subchapter C of the '
+        'Texas Property Code: within thirty (30) days after the Tenant surrenders the Premises '
+        'and provides a forwarding address, the Landlord shall refund the deposit less any '
+        'lawful deductions for damages and charges, accompanied by a written itemized list of '
+        'any deductions. Deductions may not include ordinary wear and tear.',
     ]),
     ("Article 6 – Occupancy and Use", [
         'The Premises shall be occupied only by the Tenant and shall be used solely as a private '
